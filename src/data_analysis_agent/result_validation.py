@@ -77,7 +77,7 @@ def validate_multi_tool_result(result: MultiToolQuestionResult) -> ResultValidat
                 )
             )
         else:
-            issues.extend(_validate_sql_result(result.sql_result))
+            issues.extend(validate_sql_result(result.sql_result))
         return _validation(issues)
 
     if route == "sql_then_python":
@@ -90,7 +90,7 @@ def validate_multi_tool_result(result: MultiToolQuestionResult) -> ResultValidat
                 )
             )
         else:
-            issues.extend(_validate_sql_result(result.sql_result))
+            issues.extend(validate_sql_result(result.sql_result))
 
         if result.python_result is None:
             issues.append(
@@ -119,7 +119,7 @@ def validate_multi_tool_result(result: MultiToolQuestionResult) -> ResultValidat
     return _validation(issues)
 
 
-def _validate_sql_result(result: SQLResult) -> list[ValidationIssue]:
+def validate_sql_result(result: SQLResult) -> list[ValidationIssue]:
     issues: list[ValidationIssue] = []
     if result.status != "success":
         detail = (

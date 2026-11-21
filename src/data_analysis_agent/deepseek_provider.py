@@ -18,9 +18,22 @@ from data_analysis_agent.observability import (
 )
 
 
+OPENAI_DEFAULT_URL = "https://api.openai.com/v1"
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"
 DEEPSEEK_MODEL = "deepseek-v4-flash"
 PROJECT_ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
+
+
+def _configured_client(env_path):
+    load_dotenv(dotenv_path=env_path, override=False)
+    if key := os.getenv("OPENAI_API_KEY"):
+        if not (model := os.getenv("OPENAI_MODEL")):
+            raise ValueError("OPENAI_MODEL is required with OPENAI_API_KEY.")
+        return OpenAI(api_key=key, base_url=os.getenv("OPENAI_BASE_URL") or OPENAI_DEFAULT_URL), model
+    key = os.getenv("DEEPSEEK_API_KEY")
+    if not key or not key.strip():
+        raise ValueError("OPENAI_API_KEY or DEEPSEEK_API_KEY is required.")
+    return OpenAI(api_key=key, base_url=DEEPSEEK_BASE_URL), DEEPSEEK_MODEL
 
 
 class DeepSeekTextToSQLModel:
@@ -32,25 +45,15 @@ class DeepSeekTextToSQLModel:
         client: Any | None = None,
         env_path: str | Path = PROJECT_ENV_PATH,
     ) -> None:
-        if client is not None:
-            self._client = client
-            return
-
-        load_dotenv(dotenv_path=env_path, override=False)
-        api_key = os.getenv("DEEPSEEK_API_KEY")
-        if not api_key or not api_key.strip():
-            raise ValueError(
-                "DEEPSEEK_API_KEY is required in the environment or project .env file."
-            )
-
-        self._client = OpenAI(api_key=api_key, base_url=DEEPSEEK_BASE_URL)
+        self._client, self._model = ((client, DEEPSEEK_MODEL) if client is not None
+                                     else _configured_client(env_path))
 
     def __call__(self, prompt: str) -> str:
         timing = _start_provider_timing()
         response = None
         try:
             response = self._client.chat.completions.create(
-                model=DEEPSEEK_MODEL,
+                model=self._model,
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"},
             )
@@ -58,9 +61,9 @@ class DeepSeekTextToSQLModel:
             if not isinstance(content, str) or not content:
                 raise ValueError("DeepSeek returned empty response content.")
         except Exception:
-            _record_provider_call(timing, status="error", response=response)
+            _record_provider_call(timing, model=self._model, status="error", response=response)
             raise
-        _record_provider_call(timing, status="success", response=response)
+        _record_provider_call(timing, model=self._model, status="success", response=response)
         return content
 
 
@@ -73,34 +76,24 @@ class DeepSeekNaturalLanguageModel:
         client: Any | None = None,
         env_path: str | Path = PROJECT_ENV_PATH,
     ) -> None:
-        if client is not None:
-            self._client = client
-            return
-
-        load_dotenv(dotenv_path=env_path, override=False)
-        api_key = os.getenv("DEEPSEEK_API_KEY")
-        if not api_key or not api_key.strip():
-            raise ValueError(
-                "DEEPSEEK_API_KEY is required in the environment or project .env file."
-            )
-
-        self._client = OpenAI(api_key=api_key, base_url=DEEPSEEK_BASE_URL)
+        self._client, self._model = ((client, DEEPSEEK_MODEL) if client is not None
+                                     else _configured_client(env_path))
 
     def __call__(self, prompt: str) -> str:
         timing = _start_provider_timing()
         response = None
         try:
             response = self._client.chat.completions.create(
-                model=DEEPSEEK_MODEL,
+                model=self._model,
                 messages=[{"role": "user", "content": prompt}],
             )
             content = response.choices[0].message.content
             if not isinstance(content, str) or not content.strip():
                 raise ValueError("DeepSeek returned empty response content.")
         except Exception:
-            _record_provider_call(timing, status="error", response=response)
+            _record_provider_call(timing, model=self._model, status="error", response=response)
             raise
-        _record_provider_call(timing, status="success", response=response)
+        _record_provider_call(timing, model=self._model, status="success", response=response)
         return content
 
 
@@ -114,6 +107,7 @@ def _start_provider_timing() -> tuple[str, float] | None:
 def _record_provider_call(
     timing: tuple[str, float] | None,
     *,
+    model: str,
     status: Literal["success", "error"],
     response: object | None = None,
 ) -> None:
@@ -124,7 +118,7 @@ def _record_provider_call(
     record_llm_call(
         LLMCallObservation(
             stage=stage,
-            model=DEEPSEEK_MODEL,
+            model=model,
             latency_ms=max(0.0, (time.perf_counter() - started_at) * 1000.0),
             prompt_tokens=_usage_token(usage, "prompt_tokens"),
             completion_tokens=_usage_token(usage, "completion_tokens"),

@@ -142,6 +142,9 @@ def test_fetches_only_max_rows_plus_one_without_fetchall(
             raise AssertionError("fetchall must not be used by the executor")
 
     class FakeConnection:
+        def interrupt(self):
+            raise AssertionError("A completed query must cancel the execution timer")
+
         def __enter__(self):
             return self
 

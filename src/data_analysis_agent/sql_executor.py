@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from threading import Timer
 from typing import Literal
 
 import duckdb
@@ -22,6 +23,7 @@ SQLErrorCode = Literal[
     "invalid_sql",
     "unknown_table_or_column",
     "execution_error",
+    "timeout",
 ]
 
 
@@ -51,6 +53,8 @@ def run_readonly_sql(
     database_path: str | Path,
     sql: str,
     max_rows: int = DEFAULT_MAX_ROWS,
+    *,
+    timeout_seconds: float = 10.0,
 ) -> SQLResult:
     """Validate and execute one SELECT query against DuckDB in read-only mode.
 
@@ -87,9 +91,18 @@ def run_readonly_sql(
                 "autoinstall_known_extensions": "false",
             },
         ) as connection:
-            cursor = connection.execute(sql)
-            columns = tuple(description[0] for description in cursor.description)
-            fetched_rows = cursor.fetchmany(max_rows + 1)
+            timer = Timer(timeout_seconds, connection.interrupt)
+            timer.daemon = True
+            timer.start()
+            try:
+                cursor = connection.execute(sql)
+                columns = tuple(description[0] for description in cursor.description)
+                fetched_rows = cursor.fetchmany(max_rows + 1)
+            finally:
+                timer.cancel()
+                timer.join()
+    except duckdb.InterruptException:
+        return _error_result(sql, "timeout", "SQL exceeded its execution deadline.")
     except duckdb.ParserException as exc:
         return _error_result(sql, "invalid_sql", str(exc))
     except (duckdb.CatalogException, duckdb.BinderException) as exc:

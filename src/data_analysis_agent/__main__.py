@@ -224,10 +224,61 @@ def run_cli(
         output_fn("")
 
 
-def main() -> int:
-    """Run the CLI with project defaults."""
+def main(argv: list[str] | None = None) -> int:
+    import argparse
+    import json
 
-    return run_cli()
+    from .model_budget import BudgetedModel
+    from .routing import run_task
+
+    parser = argparse.ArgumentParser(description="Trusted business queries and evidence-led investigation")
+    commands = parser.add_subparsers(dest="command", required=True)
+    for name in ("query", "investigate", "auto", "eval"):
+        command = commands.add_parser(name)
+        command.add_argument("--database", type=Path)
+        command.add_argument("--online", action="store_true")
+        if name == "eval":
+            command.add_argument("--split", choices=("dev", "test"), default="test")
+            command.add_argument("--case")
+            command.add_argument("--bike", action="store_true", help="Run UCI cross-domain smoke checks")
+            command.add_argument("--output", type=Path)
+        else:
+            command.add_argument("question")
+            command.add_argument("--domain", choices=("olist", "bike"), default="olist")
+            if name in {"auto", "investigate"}:
+                command.add_argument("--baseline-db", type=Path)
+                command.add_argument("--budget", type=int, choices=range(1, 8), default=7)
+    commands.add_parser("legacy")
+    args = parser.parse_args(argv)
+    if args.command == "legacy":
+        return run_cli(model_factory=BudgetedModel)
+    domain = getattr(args, "domain", "olist")
+    database = args.database or Path(f"data/processed/{domain}.duckdb")
+    try:
+        if not database.is_file():
+            raise ValueError(f"Missing database {database}. Run python -m scripts.prepare_data {domain}")
+        model = BudgetedModel() if args.online else None
+        if args.command == "eval":
+            from .benchmark import evaluate
+
+            payload = evaluate(database, split=args.split, case_id=args.case, online=model, bike=args.bike)
+            if args.output:
+                args.output.parent.mkdir(parents=True, exist_ok=True)
+                pending = args.output.with_suffix(".tmp")
+                pending.write_text(json.dumps(payload, default=str, ensure_ascii=False, separators=(",", ":")) + "\n")
+                pending.replace(args.output)
+                payload = {"output": str(args.output), "summary": payload["summary"]}
+        else:
+            baseline = getattr(args, "baseline_db", None)
+            if baseline and not baseline.is_file():
+                raise ValueError(f"Missing baseline database {baseline}")
+            payload = run_task(database, args.question, domain, command=args.command,
+                               baseline=baseline, budget=getattr(args, "budget", 7), model=model)
+        print(json.dumps(payload, default=str, ensure_ascii=False, indent=2))
+        return int(payload.get("status") == "refused")
+    except (ValueError, OSError, RuntimeError) as exc:
+        print(json.dumps({"status": "refused", "error": str(exc)}, ensure_ascii=False))
+        return 1
 
 
 if __name__ == "__main__":
