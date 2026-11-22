@@ -314,21 +314,30 @@ def _observation(evidence: Evidence) -> dict:
 def _model_loop(state: InvestigationState, databases: tuple[Path, Path], planner) -> None:
     frozen = state.policy == "llm_frozen"
     history: list[dict] = []
-    attempted: set[Action] = set()
-    while state.remaining_budget:
+    attempted: list[Action] = []
+    correction = None
+    # One opportunity to correct a malformed or repeated decision, using an
+    # existing decision slot. It never expands the SQL or model request budget.
+    for _ in range(state.remaining_budget):
         visible = state.evidence[:1] if frozen else state.evidence
         payload = {
             "goal": asdict(state.goal), "metric_definition": state.goal.current.spec.definition,
             "dimensions": state.goal.dimensions, "remaining_actions": state.remaining_budget,
             "evidence": [_observation(item) for item in visible],
+            "already_executed": [_action_json(action) for action in attempted],
             "past_decisions": history,
             "tested_hypotheses": [] if frozen else [asdict(h) for h in state.model_hypotheses],
             "statistical_candidates": [] if frozen else [asdict(h) for h in state.hypotheses[:10]],
         }
+        if correction:
+            payload["previous_decision_error"] = correction
+        failure = "invalid_schema"
+        proposed_action = False
         try:
             decision = planner(json.dumps(payload, default=str))
             if not isinstance(decision, dict):
                 raise ValueError("Planner must return an object")
+            proposed_action = "action" in decision
             ids = decision.get("evidence_ids")
             if (not isinstance(ids, list) or not ids
                     or any(not isinstance(item, str) or item not in {e.id for e in visible} for item in ids)):
@@ -339,8 +348,10 @@ def _model_loop(state: InvestigationState, databases: tuple[Path, Path], planner
             step = {"decision_source": "model", "after": visible[-1].id, "evidence_ids": ids,
                     "question": question, "prior_plan": history[-1]["next_action"] if history else None,
                     "visible_evidence": [item.id for item in visible]}
-            if decision.get("decision") == "stop":
-                reason = decision.get("reason")
+            if "stop" in decision:
+                reason = decision["stop"]
+                if "action" in decision:
+                    raise ValueError("Choose either stop or action")
                 if reason not in ("insufficient_evidence", "no_material_change", "sufficient_evidence"):
                     raise ValueError("Unsupported stop reason")
                 if reason == "sufficient_evidence" and any(
@@ -351,80 +362,80 @@ def _model_loop(state: InvestigationState, databases: tuple[Path, Path], planner
                     state.stop_reason = reason
                 else:
                     state.stop_reason = "insufficient_evidence"
+                state.model_error = None
                 state.trace.append({**step, "stop_requested": reason, "stop_reason": state.stop_reason})
                 return
-            if decision.get("decision") != "investigate":
-                raise ValueError("Expected investigate or stop")
+            failure = "invalid_action"
             action = _parse_action(decision.get("action"), state.goal)
             if action in attempted:
+                failure = "repeated_action"
                 raise ValueError("Action already executed")
+            failure = "invalid_schema"
             next_action = (_parse_action(decision["next_action"], state.goal)
                            if decision.get("next_action") is not None else None)
             if next_action == action or next_action in attempted:
-                raise ValueError("Provisional next action must be distinct and unused")
-            pred = decision.get("hypothesis")
-            if not isinstance(pred, dict):
-                raise ValueError("Investigation must propose a testable hypothesis")
-            segment, effect, direction = pred.get("segment"), pred.get("effect"), pred.get("direction")
-            if isinstance(segment, list) and segment and len(segment) == len(action.dimensions) and all(
-                value is None for value in segment
-            ):
-                segment = None
-            if ("segment" not in pred
-                    or (segment is not None and (not isinstance(segment, list)
-                        or len(segment) != len(action.dimensions)
-                        or any(not isinstance(item, str) for item in segment)))
-                    or effect not in ("within", "mix") or direction not in ("increase", "decrease", "stable")):
-                raise ValueError("Hypothesis needs segment, effect and direction matching the action")
-            # A response uses the requested order; the tool canonicalizes dimensions for deduplication.
-            if segment is not None:
-                values = dict(zip(decision["action"]["dimensions"], segment))
-                segment = tuple(values[dim] for dim in action.dimensions)
+                next_action = None  # A provisional action is not executed.
+            direction = decision.get("expect")
+            if direction not in (None, "increase", "decrease", "stable"):
+                raise ValueError("Unsupported expectation")
             revises = decision.get("revises")
             if revises is not None and revises not in {f"H{i + 1}" for i in range(len(history))}:
                 raise ValueError("Only an existing hypothesis ID can be revised")
         except (ValueError, TypeError, RuntimeError) as exc:
+            kind = getattr(exc, "kind", failure)
+            if isinstance(exc, RuntimeError) and "budget" in str(exc):
+                kind = "budget_limit"
             state.model_error = str(exc)
+            state.trace.append({"decision_source": "model", "error": state.model_error, "failure_kind": kind,
+                                "proposed_action": proposed_action, "visible_evidence": [item.id for item in visible]})
+            if correction is None and kind in {"repeated_action", "invalid_json", "empty_output"}:
+                correction = kind
+                continue
             state.stop_reason = "planner_error"
-            state.trace.append({"decision_source": "model", "error": state.model_error,
-                                "visible_evidence": [item.id for item in visible]})
             return
+        state.model_error = None
         hid = f"H{len(history) + 1}"
-        attempted.add(action)
-        hypothesis = Hypothesis(action.dimensions, segment or (), effect, "pending", 0, None, tuple(ids),
+        attempted.append(action)
+        hypothesis = Hypothesis(action.dimensions, (), "within", "pending", 0, None, tuple(ids),
                                 action.cohort, hid, direction)
         state.model_hypotheses.append(hypothesis)
         original = next((h for h in state.model_hypotheses if h.id == revises), None)
         step.update({
             "hypothesis_id": hid, "hypothesis_before": "pending", "revises": revises,
             "next_action": _action_json(next_action) if next_action else None,
-            "replan": bool(
-                not frozen and step["prior_plan"] and _action_json(action) != step["prior_plan"] and original
+            "replan": False,
+        })
+        changed = bool(not frozen and step["prior_plan"] and _action_json(action) != step["prior_plan"]
+                       and visible[-1].id in ids and len(visible) > 1)
+        step["evidence_driven_change"] = changed
+        step["replan"] = bool(
+                changed and original
                 and original.state == "refuted" and original.evidence[-1] == visible[-1].id in ids
                 and (set(original.action) | dict(original.cohort).keys())
                     & (set(action.dimensions) | dict(action.cohort).keys())
-            ),
-        })
+        )
         evidence = _observe(state, databases, action, step)
-        if segment is None:
-            row = max(evidence.segments, key=lambda row: abs(getattr(row, effect) or 0), default=None)
-        else:
-            row = next((row for row in evidence.segments if row.key == segment), None)
-        value = getattr(row, effect) if row else None
-        head = state.evidence[0].segments[0]
-        cutoff = max(abs(head.before), abs(head.after), 1e-9) * 0.015
-        if value is None or (effect == "within" and min(row.before_n, row.after_n) < 24):
-            status = "insufficient"
-        else:
+        # Use actual group keys from the result. Cohort filters never become group keys.
+        measured = [(row, effect, value) for row in evidence.segments
+                    for effect, value in (("within", row.within), ("mix", row.mix))
+                    if value is not None and (effect == "mix" or min(row.before_n, row.after_n) >= 24)
+                    and (direction is None or effect == "within")]
+        observed = max(measured, key=lambda item: abs(item[2]), default=None)
+        if observed:
+            row, effect, value = observed
+            head = state.evidence[0].segments[0]
+            cutoff = max(abs(head.before), abs(head.after), 1e-9) * 0.015
             actual = "increase" if value > cutoff else "decrease" if value < -cutoff else "stable"
-            status = "supported" if actual == direction else "refuted"
-        state.model_hypotheses[-1] = replace(hypothesis, state=status, contribution=value,
-                                               segment=row.key if row else hypothesis.segment,
-                                               evidence=(*ids, evidence.id))
+            status = ("observed" if direction is None else "supported" if actual == direction else "refuted")
+            hypothesis = replace(hypothesis, segment=row.key, effect=effect, contribution=value)
+        else:
+            status = "insufficient"
+        state.model_hypotheses[-1] = replace(hypothesis, state=status, evidence=(*ids, evidence.id))
         step["hypothesis_after"] = status
         history.append({"hypothesis_id": hid, "action": _action_json(action), "question": question,
-                        "hypothesis": pred, "next_action": step["next_action"]})
-    state.stop_reason = "budget_exhausted"
+                        "expect": direction, "next_action": step["next_action"]})
+    state.stop_reason = ("planner_error" if state.model_error else
+                         "decision_budget_exhausted" if state.remaining_budget else "budget_exhausted")
 
 
 @observed_stage("investigation")

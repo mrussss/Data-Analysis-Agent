@@ -111,6 +111,15 @@ MODE_B_TEST = (
 )
 
 
+# Reliability holdouts fixed before the shortened protocol was first called.
+MODE_B_TEST += (
+    Case("reliability_localized", ("2018-04-01", "2018-08-01"), ("2018-04-01", "2018-08-01"),
+         (("MG", 4, 1, 440),)),
+    Case("reliability_offset", ("2018-01-01", "2018-07-01"), ("2018-01-01", "2018-07-01"),
+         (("SP", 6, 1, 180), ("RJ", 1, -1, 95))),
+)
+
+
 def counts(database: Path, window: tuple[str, str], state: str | None = None) -> tuple[int, int]:
     with duckdb.connect(str(database), read_only=True) as connection:
         return connection.execute(

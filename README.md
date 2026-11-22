@@ -22,20 +22,43 @@ python -m pytest
 
 问数接受 `<metric> from <start> to <end> [where field=value [and field=value]] [by day|month]`。日期左闭右开。Olist 支持订单数、三种金额口径（商品成交额、含运费成交额和支付额）、每单平均商品数、平均配送时长、晚到率。过滤字段为 `state`、`weekday`（周一为 1）、`status`。晚到按实际送达时间与预估送达时间比较，只纳入两个时间都有记录的订单。Bike 支持 `rentals`、`average_hourly_rentals`，可按 `workingday`、`weather` 或 `season` 调查。超出支持范围的问数会明确拒答。
 
-离线是默认路径。可用 `OPENAI_API_KEY`、`OPENAI_MODEL`、可选 `OPENAI_BASE_URL` 加 `--online` 复跑。每次 CLI 运行共享请求与 token 预算，默认上限分别为 60 与 250,000，SDK 自动重试关闭。用量未知会停止继续调用，预算中断的任务保留 Trace 并排除出配对汇总。可先用 `python -m data_analysis_agent eval --mode-b --online --case paired_proxy --budget 3 --output evaluation/replay_online.json` 做一次配对实验。线上失败或用量未知时保留失败记录。
+离线是默认路径。可用 `OPENAI_API_KEY`、`OPENAI_MODEL`、可选 `OPENAI_BASE_URL` 加 `--online` 复跑。每次 CLI 运行共享请求与 token 预算，默认上限分别为 60 与 250,000，SDK 自动重试关闭。用量未知会停止继续调用，预算中断的任务保留 Trace 并排除出配对汇总。下方命令可复跑一次限额内的在线配对。线上失败或用量未知时保留失败记录。
 
 ## Mode B 模型规划
 
-`investigate --online` 先执行一次共同的整体对比，后续由模型决定动作。它可以分组、在同一两期人群上条件下钻、核查一个人群总量，或停止。模型给出待验证的方向、调查疑问和 Evidence ID。SQL 编译器固定指标和窗口，工具计算数字、检验方向并产出结论。无效决策会结束本次模型调查。离线路径继续使用 Rule-Adaptive，`auto` 的显式单维分解走固定 Workflow。
+`investigate --online` 先执行一次共同的整体对比，后续由模型决定动作。它可以分组、在同一两期人群上条件下钻、核查一个人群总量，或停止。模型给出动作或停止决定、调查疑问和 Evidence ID。方向预测与预案均可选。SQL 编译器固定指标和窗口，工具从结果中确定最显著的分组。空白、JSON 解析失败或重复动作至多使用一个剩余决策名额纠正。离线路径继续使用 Rule-Adaptive，`auto` 的显式单维分解走固定 Workflow。
 
 ```bash
 python -m data_analysis_agent eval --mode-b --budget 5 --bike --output evaluation/replay_offline.json
-python -m data_analysis_agent eval --mode-b --online --case paired_proxy --budget 3 --output evaluation/replay_online.json
+MAX_LLM_REQUESTS=8 MAX_LLM_TOTAL_TOKENS=100000 python -m data_analysis_agent eval --mode-b --online --case reliability_localized --budget 5 --output evaluation/replay_online.json
 ```
 
 3、5、7 是各自的真实动作上限，整体对比计 1 次。LLM-Frozen 和 LLM-Adaptive 共用首条证据、模型、工具与预算。Frozen 后续只看到自己的历史决策，最后由同一确定性渲染器汇总实际工具结果。一次可计分的模型重规划要求模型在观察前留下下一步，工具随后反驳待验证假设，模型再引用新证据执行相关的替代动作。
 
-[本轮逐案结果、在线请求与 Trace](evaluation/mode_b_followup.json)。新增两个冻结用例。平衡单元格的四处干预在整体及单维边际上抵消，Top-3 至少覆盖其中三个才算完成；双变化代理用例同时包含星期效应和由订单状态变化产生的代理信号。
+### 真实模型可靠性实验
+
+[开发诊断、冻结对照和完整 Trace](evaluation/mode_b_reliability.json)。旧记录确认过超时、JSON 解析失败、重复动作，以及把 SP 州过滤值混入星期分组的情况。旧日志缺少响应长度和结束原因，无法追溯每个解析失败的具体成因。本轮在开发集复现两次 `finish_reason=length`，其中一次可见内容为空。采用短协议和 3,072 token 上限后，开发集拿到了完整 JSON。请求要求关闭思考，网关仍返回了推理字段；用量和输出长度均以实测记录为准。[DeepSeek JSON 模式](https://api-docs.deepseek.com/guides/json_mode/) · [DeepSeek 思考模式](https://api-docs.deepseek.com/guides/thinking_mode/)
+
+采用 85 秒单次等待后，开发集的两个模型组都完成两步调查，4/4 响应为合法 JSON。Adaptive 的 E1 测得晚到率从 16.00% 变为 18.14%；E2 分解星期变化，模型引用 E2 后改查州分解，E3 定位 MG 贡献 +2.14 个百分点，最后在分析预算用尽时交付报告。这是依据新证据选择下一步的真实记录。
+
+冻结后运行两道未用于调试的 Olist 题，分析预算分别为 5 次和 3 次。每题四组共享快照和动作上限。
+
+| 策略 | 正确 | 调查完成 | 可解析 JSON | SQL | 请求 | Token | 两题总耗时 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Fixed Workflow | 1/2 | 2/2 | — | 16 | 0 | 0 | 0.39 s |
+| Rule-Adaptive | 2/2 | 2/2 | — | 16 | 0 | 0 | 0.38 s |
+| LLM-Frozen | 0/2 | 1/2 | 6/6 | 14 | 6 | 16,579 | 61.77 s |
+| LLM-Adaptive | 2/2 | 2/2 | 5/6 | 14 | 6 | 19,681 | 53.25 s |
+
+两模型组提出的动作均通过校验（各 5/5）。Frozen 一题主动报告证据不足，另一题交付了报告但漏掉机制。Adaptive 的数字和 4/4 条统计声明均可回溯。局部变化用例的一次非 JSON 响应长 186 字符，结束原因为 `stop`；占用一个决策名额纠正后，模型完成了调查。E2 反驳 SP 假设，模型引用 E2 查州分解，E3 定位 MG，再由 E4 定位到 MG 的周四。模型没有在观察前提交可比较的预案，严格反证重规划仍为 0 次。Adaptive 在这两题上胜过固定顺序和 Frozen，准确率与规则策略持平，耗时明显更长。两题不足以估计一般性优势。
+
+含调试共发出 20 次请求，已计量 50,372 token，另有 1 次超时的用量未知。SDK 自动重试关闭，达到请求上限后停止。
+
+测试按 SQL 与语义、调查、分析、数据管道、接口、评测和工作流合并为 7 个文件、260 个用例。保留了安全边界、关键回归及线上协议测试，生产模块和依赖保持不变。
+
+### 上轮消融
+
+[原逐案结果、在线请求与 Trace](evaluation/mode_b_followup.json)。上轮新增两个冻结用例。平衡单元格的四处干预在整体及单维边际上抵消，Top-3 至少覆盖其中三个才算完成；双变化代理用例同时包含星期效应和由订单状态变化产生的代理信号。
 
 | 动作预算 | 固定 Workflow | Rule-Adaptive | 两组各自的 SQL 调用 |
 | --- | ---: | ---: | ---: |

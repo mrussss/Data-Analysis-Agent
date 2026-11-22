@@ -99,7 +99,8 @@ def mechanism(hypothesis, edit) -> bool:
 
 def effective_replans(state: InvestigationState) -> tuple[int, int]:
     opportunities = valid = 0
-    for prior, next_step in zip(state.trace, state.trace[1:]):
+    steps = [step for step in state.trace if "error" not in step]
+    for prior, next_step in zip(steps, steps[1:]):
         if state.policy.startswith("llm_"):
             if state.policy == "llm_adaptive" and prior.get("next_action") and prior.get("hypothesis_after") == "refuted":
                 opportunities += 1
@@ -179,14 +180,26 @@ def score_investigation(state, manifest, control):
                    and all(historical_matches(e, manifest["historical_groups"],
                                               (manifest["baseline"], manifest["current"]))
                            for e in state.evidence if not e.error))
+    completed = state.stop_reason not in {"planner_error", "insufficient_evidence"} or bool(control and correct)
+    outcome = ("correct" if correct else "planning_failure" if state.stop_reason == "planner_error"
+               else "insufficient_evidence" if not completed else "mechanism_miss" if edits and clean
+               else "incorrect_report")
     return {
-        "correct": correct, "numeric_correct": numeric, "reconciles": bool(clean),
-        "top1": bool(hits and hits[0]) if edits else None,
-        "top3": bool(found) if edits else None,
-        "all_mechanisms_top3": len(found) == len(edits) if edits else None,
+        "correct": correct, "outcome": outcome, "numeric_correct": numeric, "reconciles": bool(clean),
+        "top1": bool(hits and hits[0]) if edits and completed else None,
+        "top3": bool(found) if edits and completed else None,
+        "all_mechanisms_top3": len(found) == len(edits) if edits and completed else None,
         "mechanisms_found": len(found), "mechanisms_total": len(edits),
         "controls": int(bool(control)), "correct_stops": int(bool(control and correct)),
         "planner_errors": int(state.stop_reason == "planner_error"),
+        "completed": completed,
+        "legal_actions": sum(step.get("decision_source") == "model" and "evidence" in step
+                             for step in state.trace),
+        "action_proposals": sum(step.get("decision_source") == "model"
+                                and ("evidence" in step or step.get("proposed_action", False))
+                                for step in state.trace),
+        "tool_errors": sum(e.error is not None for e in state.evidence),
+        "evidence_driven_changes": sum(step.get("evidence_driven_change", False) for step in state.trace),
         "supported_claims": evidence_supported, "claims": len(hypotheses),
         "ungrounded_claims": len(hypotheses) - evidence_supported,
         "control_false_attributions": len(hypotheses) if control else 0,
@@ -198,6 +211,7 @@ def score_investigation(state, manifest, control):
 
 def _measure_run(arm, case, task_type, policy, run, online):
     first_request = online.requests if online else 0
+    first_planner_call = len(online.planner_calls) if online else 0
     with start_observability_request() as collector:
         result = run()
         trace = finalize_observability(
@@ -209,12 +223,16 @@ def _measure_run(arm, case, task_type, policy, run, online):
                    trace.total_latency_ms)
     calls = online.requests - first_request if online else 0
     usage = online.usages[first_request:] if online else ()
+    diagnostics = online.planner_calls[first_planner_call:] if online else []
     return {
         "arm": arm, "case": case, "type": task_type, "policy": policy, **result,
         "latency_ms": elapsed,
         "sql_calls": sum(s.stage == "sql_execution" for s in stages),
         "analysis_actions": sum(s.stage == "investigation_measure" for s in stages),
         "requests": calls,
+        "response_diagnostics": diagnostics,
+        "provider_responses": sum("finish_reason" in item for item in diagnostics),
+        "json_responses": sum(item["response_status"] == "json" for item in diagnostics),
         "tokens": sum(usage) if all(value is not None for value in usage) else None,
         "execution": "online_model" if calls else "deterministic",
     }
@@ -259,15 +277,21 @@ def summarize(records):
                     groups[key][name] = [sum(scores), len(scores)]
             for name in ("claims", "supported_claims", "ungrounded_claims", "control_false_attributions",
                          "off_target_injection_claims", "replan_opportunities", "effective_replans",
-                         "controls", "correct_stops", "planner_errors", "mechanisms_found", "mechanisms_total"):
+                         "controls", "correct_stops", "planner_errors", "mechanisms_found", "mechanisms_total",
+                         "completed", "legal_actions", "action_proposals", "provider_responses", "json_responses",
+                         "tool_errors", "evidence_driven_changes"):
                 if any(name in r for r in runs):
                     groups[key][name] = sum(r.get(name, 0) for r in runs)
             for numerator, denominator, label in (
+                ("completed", "n", "completion_rate"),
+                ("legal_actions", "action_proposals", "legal_action_rate"),
+                ("provider_responses", "requests", "provider_response_rate"),
+                ("json_responses", "requests", "json_response_rate"),
                 ("supported_claims", "claims", "evidence_support_rate"),
                 ("ungrounded_claims", "claims", "ungrounded_claim_rate"),
                 ("effective_replans", "replan_opportunities", "effective_replan_rate"),
             ):
-                if denominator in buckets:
+                if numerator in buckets and denominator in buckets:
                     buckets[label] = buckets[numerator] / buckets[denominator] if buckets[denominator] else None
     return groups
 
