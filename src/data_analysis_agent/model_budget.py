@@ -81,6 +81,9 @@ class BudgetedModel:
                 content = message.content or "" if message else ""
                 finish = getattr(choice, "finish_reason", None)
                 reasoning = getattr(message, "reasoning_content", None) or ""
+                billed = getattr(response.usage, "cost_usd", None)
+                if isinstance(billed, (int, float)) and billed >= 0:
+                    entry["provider_cost_usd"] = billed
                 entry.update(finish_reason=finish, content_chars=len(content),
                              blank=not content.strip(), reasoning_chars=len(reasoning),
                              content_equals_reasoning=bool(reasoning) and content == reasoning,

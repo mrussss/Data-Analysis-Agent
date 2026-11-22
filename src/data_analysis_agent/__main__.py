@@ -224,6 +224,52 @@ def run_cli(
         output_fn("")
 
 
+def _business_investigation(database, args, model):
+    from dataclasses import asdict
+    from datetime import date
+    from functools import partial
+    import json
+
+    from .business_tools import BusinessGoal
+    from .investigation import investigate
+
+    if not args.before or not args.current or args.baseline_db:
+        raise ValueError("Use --before START END and --current START END in one business snapshot")
+    before, current = (tuple(date.fromisoformat(day) for day in window)
+                       for window in (args.before, args.current))
+    if not before[0] < before[1] <= current[0] < current[1]:
+        raise ValueError("Business windows must be chronologically ordered and disjoint")
+    if args.domain == "olist":
+        metric = args.metric or "item_lines"
+        if (metric not in {"orders", "item_lines", "gmv", "freight_value", "late_delivery_rate"}
+                or args.events or (metric == "orders" and (args.entity or args.dimension in {"category", "seller_state"}))
+                or (metric == "late_delivery_rate" and (args.entity or args.dimension not in {"state", "weekday", "status"}))
+                or (args.entity and args.dimension == "category")):
+            raise ValueError("Metric, dimension, or event source is incompatible with the Olist investigation")
+    elif args.domain == "retail":
+        metric = args.metric or "units"
+        if metric != "units" or not args.entity or args.dimension:
+            raise ValueError("Retail investigations need an entity and use units as the comparison metric")
+    else:
+        raise ValueError("Business investigations support Olist and the fictional retail panel")
+    events = ()
+    if args.events:
+        events = json.loads(args.events.read_text())
+        fields = {"id", "subject", "date", "scope", "text", "source"}
+        if (not isinstance(events, list) or any(not isinstance(item, dict) or not fields <= item.keys()
+                or any(not isinstance(item[key], str) or not item[key] for key in fields) for item in events)):
+            raise ValueError("Event archive must be a list of records with id, subject, date, scope, text, and source")
+        if len({item["id"] for item in events}) != len(events):
+            raise ValueError("Event IDs must be unique")
+        for item in events:
+            date.fromisoformat(item["date"])
+    goal = BusinessGoal(args.question, args.domain, before, current, args.entity, metric, args.dimension)
+    state = investigate((database, database), goal, policy="llm_adaptive" if model else "rule_adaptive",
+                        budget=args.budget, planner=partial(model, output_limit=1024, planning=True) if model else None,
+                        events=events)
+    return asdict(state)
+
+
 def main(argv: list[str] | None = None) -> int:
     import argparse
     import json
@@ -240,13 +286,26 @@ def main(argv: list[str] | None = None) -> int:
         if name == "eval":
             command.add_argument("--split", choices=("dev", "test"), default="test")
             command.add_argument("--case", help="Case ID or comma-separated Mode B case IDs")
-            command.add_argument("--mode-b", action="store_true", help="Compare Mode B policies")
+            suite = command.add_mutually_exclusive_group()
+            suite.add_argument("--mode-b", action="store_true", help="Compare delivery benchmark policies")
+            suite.add_argument("--business", action="store_true", help="Run the business investigation suite")
+            command.add_argument("--prior-results", type=Path, action="append", default=[],
+                                 help="Subtract prior business online usage from this experiment's budget")
             command.add_argument("--budget", type=int, choices=(3, 5, 7), default=5)
             command.add_argument("--bike", action="store_true", help="Run UCI cross-domain smoke checks")
             command.add_argument("--output", type=Path)
         else:
             command.add_argument("question")
-            command.add_argument("--domain", choices=("olist", "bike"), default="olist")
+            command.add_argument("--domain", choices=("olist", "bike", "retail") if name == "investigate"
+                                 else ("olist", "bike"), default="olist")
+            if name == "investigate":
+                command.add_argument("--business", action="store_true", help="Use cross-metric business tools")
+                command.add_argument("--before", nargs=2, metavar=("START", "END"))
+                command.add_argument("--current", nargs=2, metavar=("START", "END"))
+                command.add_argument("--entity", help="Olist category or fictional retail merchant")
+                command.add_argument("--metric")
+                command.add_argument("--dimension", choices=("state", "weekday", "status", "category", "seller_state"))
+                command.add_argument("--events", type=Path, help="Local retail event JSON archive")
             if name in {"auto", "investigate"}:
                 command.add_argument("--baseline-db", type=Path)
                 command.add_argument("--budget", type=int, choices=range(1, 8), default=7)
@@ -263,7 +322,21 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "eval":
             from .benchmark import evaluate, evaluate_mode_b
 
-            if args.mode_b or model:
+            if args.business:
+                from .business_benchmark import evaluate_business
+
+                if args.bike or (args.prior_results and not model):
+                    raise ValueError("Business evaluation does not use --bike and prior usage requires --online")
+                if model:
+                    prior = [json.loads(path.read_text())["online_usage"] for path in args.prior_results]
+                    if any(row["unknown_usage_requests"] for row in prior):
+                        raise ValueError("Unknown prior model usage blocks this experiment from continuing")
+                    model.max_requests = min(model.max_requests, 40 - sum(row["requests"] for row in prior))
+                    model.max_tokens = min(model.max_tokens, 160_000 - sum(row["tokens"] for row in prior))
+                payload = evaluate_business(database, split=args.split,
+                                            case_ids=tuple(args.case.split(",")) if args.case else (),
+                                            budget=args.budget, model=model)
+            elif args.mode_b or model:
                 payload = evaluate_mode_b(database, split=args.split,
                                           case_ids=tuple(args.case.split(",")) if args.case else (),
                                           budget=args.budget, online=model, bike=args.bike)
@@ -282,7 +355,12 @@ def main(argv: list[str] | None = None) -> int:
                     ]
                     summary["online_usage"] = payload["online_usage"]
                 payload = summary
+        elif args.command == "investigate" and args.business:
+            payload = _business_investigation(database, args, model)
         else:
+            if domain == "retail" or any(getattr(args, name, None) is not None
+                                        for name in ("before", "current", "entity", "metric", "dimension", "events")):
+                raise ValueError("Business arguments require investigate --business")
             baseline = getattr(args, "baseline_db", None)
             if baseline and not baseline.is_file():
                 raise ValueError(f"Missing baseline database {baseline}")

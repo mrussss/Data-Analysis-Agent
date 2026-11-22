@@ -24,7 +24,84 @@ python -m pytest
 
 离线是默认路径。可用 `OPENAI_API_KEY`、`OPENAI_MODEL`、可选 `OPENAI_BASE_URL` 加 `--online` 复跑。每次 CLI 运行共享请求与 token 预算，默认上限分别为 60 与 250,000，SDK 自动重试关闭。用量未知会停止继续调用，预算中断的任务保留 Trace 并排除出配对汇总。下方命令可复跑一次限额内的在线配对。线上失败或用量未知时保留失败记录。
 
-## Mode B 模型规划
+## Mode B 业务调查
+
+旧实验主要在同一晚到率口径下切分州、星期和订单状态。多数题可以用几次预写 SQL 解决，受控题则集中在少数配送日期或状态编辑。原评分对注入定位和统计对账很有用，但很少测试跨表佐证、竞争解释、事件主体和时间，两个真实冻结题也无法估计通用收益。
+
+### 数据与题目
+
+| 类型 | 冻结题 | 数据与内容 |
+| --- | ---: | --- |
+| A 常规统计 | 8 | 原始 Olist。订单、GMV、运费和商品明细量的贡献定位，另有晚到率的构成／组内分解 |
+| B 跨指标、跨表 | 8 | 原始 Olist。消费金额与购买量分离、订单篮子变化、售出商品和卖家广度、评价覆盖、晚到与差评分层 |
+| C 外部上下文 | 8 | 独立虚构面板。召回范围、优惠到期、区域渠道、市场休市、竞争品进入、补货、流量转化、产品更新 |
+| D 误导与证据不足 | 6 | 同期负面报道叠加缺货、相似主体、迟发事件、多事件共存、库存缺测和指标稳定 |
+
+另有四道独立开发题，每类一道。冻结题与旧冻结题分开。划分、问题、答案和正式在线顺序在首次真实请求前确定。测试集已经公开在仓库中，适用于本轮模型提示隔离和复跑，后续调过这批题的实验需要新的留出集。
+
+A/B 使用现有 DuckDB 的真实商业观测，保留原始记录。Olist 含 99,441 条订单、112,650 条商品明细、99,224 条评价和 3,095 个卖家。商品分类沿用官方译名。GMV 是商品标价之和，排除运费。类别评价先对订单去重，再按评价回答时间、创建时间和稳定键选取最新一条。配送和差评的分母各自取有对应字段的订单。类别订单在不同类别间可以重叠。Olist 没有可靠的品牌、库存、流量和优惠台账。M5 的商品销量层级和价格、Favorita 的品类销量、促销和节假日适合其他问题，本轮采用现成 Olist 加小面板即可复现主体错配、时序倒置和库存缺测。 [Olist 与许可](docs/DATASET.md) · [M5 主办方论文](https://doi.org/10.1016/j.ijforecast.2021.11.013) · [Favorita 官方数据说明](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data)
+
+C/D 每题按源码生成 28 日、168 行的 SKU／区域／对照面板及对应的本地事件记录，全部主体、事件、数据和实验机制均为虚构。每道题的库存、销量、价格等改动只进入生成器，事件档案只给事件 ID、主体、日期、范围、原文和来源。真实 Olist 表与虚构面板互不写入。事件先按日期和主体名检索，保留相似主体用于核查，报告时再验证精确主体与时序。日期以已查到的持续异常起点为准，否则使用观察窗起点。匹配的时间容差为起点前 3 日至起点当天。重合只支撑候选解释。D 的缺货实验通过库存状态和受影响 SKU 的销量核对受控机制。
+
+### 调查协议与评分
+
+四组共享同一快照、目录、只读 SQL、事件档案、初始比较和最多五次证据动作。首个比较占一次。两期比例分解复用现有统计器，分别执行两条 SQL，原始 SQL 调用数另外记录。Fixed Workflow 在看新增证据前按公开问题预排动作。Rule-Adaptive 用相同的初始选择规则，再根据事件范围或日期执行有针对性的检查。LLM-Frozen 只看初始比较后提交完整动作列表。LLM-Adaptive 逐步看证据并选择动作或停止。两组都可在规划结束后读已取得的证据并提交同样格式的报告。
+
+评分要求结论状态正确、覆盖题目要求的事实，且每条事实由所引 Evidence ID 支持。事件检索、主体／时间匹配、受控机制、竞争证据、错误归因、正确保留归因、预算内完成和反证后的动作变化分别记录。成功的空检索可回答证据不足题。未经充分检查的候选解释与断言错误机制分别计数。方向判断使用 8% 相对差或 2.5 个百分点的比例差。阈值代表本题的实质变化，统计置信区间另需研究设计。观察题评分覆盖可计算的事实和校准结论。完整的金标、执行 SQL、原始证据、动作顺序、给规划器可见的证据 ID、模型用量诊断和协议哈希随 Trace 保存。
+
+### 冻结集离线结果
+
+| 类型 | 策略 | 正确 | 必答事实 | 声明有据 | SQL＋事件检索 | 平均耗时 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| A | Fixed Workflow | 8/8 | 9/9 | 46/46 | 20＋0 | 83.19 ms |
+| A | Rule-Adaptive | 8/8 | 9/9 | 46/46 | 20＋0 | 81.03 ms |
+| B | Fixed Workflow | 8/8 | 26/26 | 82/82 | 20＋0 | 100.72 ms |
+| B | Rule-Adaptive | 8/8 | 26/26 | 82/82 | 20＋0 | 102.75 ms |
+| C | Fixed Workflow | 8/8 | 32/32 | 72/72 | 28＋8 | 43.85 ms |
+| C | Rule-Adaptive | 8/8 | 32/32 | 72/72 | 28＋8 | 44.54 ms |
+| D | Fixed Workflow | 6/6 | 20/20 | 49/49 | 15＋6 | 29.67 ms |
+| D | Rule-Adaptive | 6/6 | 20/20 | 49/49 | 15＋6 | 32.12 ms |
+
+两组模型调用与 token 成本均为零，30/30 在动作预算内交付报告。两组事件检索和主体／时间匹配均为 C 8/8、D 6/6，D 正确保留或拒绝归因 5/5，缺货机制识别 1/1。两组均为 30/30。召回题最初只接受按 SKU 查库存，离线审计确认全店两期均全量覆盖且 100% 有货时，已观测 SKU 同样可排除缺货。评分增加等价证据校验，题面、数据和其他评分要求维持冻结。 [冻结集评分与逐案 Trace](evaluation/business_offline.json) · [开发集离线 Trace](evaluation/business_offline_dev.json)
+
+召回题的 Rule-Adaptive Trace 中，E1 发现两期销量由 2,800 降至 2,016。E2 找到仅针对 core 的虚构召回记录，E3 将销量缺口定位到 core，E4 将预排的全店库存查询替换为 core 库存查询，测得可用率仍为 100%，E5 核查投诉率上升。这条记录展示了外部证据如何改变实际 SQL 调查。证据支持保留召回作为候选解释。
+
+### 真实模型试跑与续跑
+
+| 阶段 | 策略 | 样本 | 完成 | 请求 | 已计量 Token／美元 | 延迟 |
+| --- | --- | ---: | ---: | ---: | --- | ---: |
+| 开发集 C | LLM-Frozen | 1 次尝试 | 0/1 | 1 | 未返回／未知 | 335.95 ms |
+| 开发集 C | LLM-Adaptive | 0 | — | 0 | — | — |
+| 冻结集 A–D | LLM-Frozen | 0 | — | 0 | — | — |
+| 冻结集 A–D | LLM-Adaptive | 0 | — | 0 | — | — |
+
+配置的 OpenAI 兼容网关在首个真实请求上返回 `APIConnectionError`，没有 HTTP 状态、模型输出或用量。当前环境也未解析到该网关域名。SDK 自动重试关闭，未知用量触发停止。新任务没有真实的跨来源模型 Trace 或任何可计分的在线配对。旧实验的真实 Trace 使用 SQL 证据，仍可在旧报告复查。 [本轮在线失败 Trace](evaluation/business_online_dev.json) · [旧在线 Trace](evaluation/mode_b_reliability.json)
+
+现有证据支持在结构化数据、较小动作空间和清楚的诊断信号下优先使用确定性策略。Rule-Adaptive 的路径变化来自事件范围触发条件下钻，Fixed Workflow 的全量库存证据也足以回答本题。LLM 的增量价值仍待验证。当前事件档案很小，合成面板噪声低，Olist 月窗口长短不完全一致，B 类问题多给出检查方向，公开题库可能被后续模型或提示熟悉。后续实验优先复跑预选配对，再用更少提示和更加含混的候选证据测试选工具的收益。
+
+```bash
+python -m scripts.prepare_data olist
+python -m data_analysis_agent eval --business --output evaluation/business_offline.json
+python -m data_analysis_agent eval --business --split dev --output evaluation/business_offline_dev.json
+python -m data_analysis_agent investigate --business --entity health_beauty \
+  --before 2018-03-01 2018-04-01 --current 2018-04-01 2018-05-01 --budget 5 \
+  'Compare complaints with late delivery and check late and on-time groups.'
+python -m pytest
+```
+
+网关恢复后，新的一轮先跑开发集，再把实际用量扣除后运行预定冻结配对。每轮最多 40 请求和 160,000 已计量 token。未知用量会阻止原轮续跑，需先用网关用量记录核对并保留原失败 Trace。可以把已核对的历史账本通过多个 `--prior-results` 累计扣除。费用只在提供方明确返回 USD 时记录。
+
+```bash
+python -m data_analysis_agent eval --business --split dev --online \
+  --output evaluation/business_online_dev_replay.json
+python -m data_analysis_agent eval --business --online \
+  --prior-results evaluation/business_online_dev_replay.json \
+  --output evaluation/business_online_test_replay.json
+```
+
+[工具及 SQL](src/data_analysis_agent/business_tools.py) · [策略与结论协议](src/data_analysis_agent/business_investigation.py) · [数据生成与题库](src/data_analysis_agent/business_cases.py) · [评分与预算内配对](src/data_analysis_agent/business_benchmark.py)
+
+## Mode B 晚到率实验（历史）
 
 `investigate --online` 先执行一次共同的整体对比，后续由模型决定动作。它可以分组、在同一两期人群上条件下钻、核查一个人群总量，或停止。模型给出动作或停止决定、调查疑问和 Evidence ID。方向预测与预案均可选。SQL 编译器固定指标和窗口，工具从结果中确定最显著的分组。空白、JSON 解析失败或重复动作至多使用一个剩余决策名额纠正。离线路径继续使用 Rule-Adaptive，`auto` 的显式单维分解走固定 Workflow。
 
@@ -54,7 +131,7 @@ MAX_LLM_REQUESTS=8 MAX_LLM_TOTAL_TOKENS=100000 python -m data_analysis_agent eva
 
 含调试共发出 20 次请求，已计量 50,372 token，另有 1 次超时的用量未知。SDK 自动重试关闭，达到请求上限后停止。
 
-测试按 SQL 与语义、调查、分析、数据管道、接口、评测和工作流合并为 7 个文件、260 个用例。保留了安全边界、关键回归及线上协议测试，生产模块和依赖保持不变。
+该版将测试合并为 7 个文件、260 个用例，覆盖安全边界、关键回归及线上协议。
 
 ### 上轮消融
 

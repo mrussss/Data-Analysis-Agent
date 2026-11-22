@@ -177,3 +177,113 @@ def test_planner_diagnoses_provider_output_without_storing_raw_content(monkeypat
     assert not {"content", "prompt", "headers"} & record.keys()
     assert provider_arguments["extra_body"] == {"thinking": {"type": "disabled"}}
     assert provider_arguments["max_tokens"] == 3072 and provider_arguments["reasoning_effort"] == "none"
+
+
+def test_business_frozen_plan_is_isolated_and_uses_shared_event_search(tmp_path):
+    from data_analysis_agent.business_benchmark import score
+    from data_analysis_agent.business_cases import RETAIL_TEST, build_retail
+
+    case = next(item for item in RETAIL_TEST if item.id == "after_onset")
+    database = tmp_path / "observed.duckdb"
+    events = build_retail(case, database)
+    payloads = []
+
+    def plan(prompt):
+        payload = json.loads(prompt.split("\n", 1)[1])
+        payloads.append(payload)
+        assert not {"verdict", "changes", "findings", "case"} & set(payload["goal"])
+        assert case.id not in json.dumps(payload)
+        if len(payloads) == 1:
+            assert [item["id"] for item in payload["evidence"]] == ["E1"]
+            assert {"stock", "events", "timeline"} <= payload["tools"].keys()
+            return {"actions": ["events", "timeline"], "reason": "Check event and onset dates."}
+        assert [item["id"] for item in payload["evidence"]] == ["E1", "E2", "E3"]
+        return {"verdict": "insufficient", "claims": [
+            {"evidence": id, "fact": fact} for id, fact in zip(("E1", "E3", "E2"), case.findings)
+        ]}
+
+    state = investigate((database, database), case.goal, budget=5, policy="llm_frozen", planner=plan, events=events)
+    assert len(payloads) == 2
+    assert [step["visible_evidence"] for step in state.trace[1:]] == [["E1"], ["E1"]]
+    assert score(state, case)["correct"]
+
+
+def test_business_refutation_changes_executed_path(tmp_path):
+    from data_analysis_agent.business_benchmark import score
+    from data_analysis_agent.business_cases import RETAIL_TEST, build_retail
+
+    case = next(item for item in RETAIL_TEST if item.id == "recall_scope")
+    database = tmp_path / "observed.duckdb"
+    events = build_retail(case, database)
+    actions = iter(("events", "stock_core", "scope", "complaints"))
+
+    def plan(prompt):
+        payload = json.loads(prompt.split("\n", 1)[1])
+        if "verdicts" in payload:
+            return {"verdict": "plausible", "claims": [
+                {"evidence": item["id"], "fact": fact} for item in payload["evidence"] for fact in item["facts"]
+            ]}
+        action = next(actions)
+        decision = {"action": action, "question": "Can this evidence distinguish the explanations?"}
+        if action == "stock_core":
+            decision.update(expect="stock_core:availability=down", next="pricing")
+        if action == "scope":
+            assert payload["previous"]["refutation"] == {"evidence": "E3", "actual": "stock_core:availability=stable"}
+        return decision
+
+    state = investigate((database, database), case.goal, budget=5, policy="llm_adaptive", planner=plan, events=events)
+    result = score(state, case)
+    assert result["correct"] and result["changes_after_refutation"] == 1
+    assert result["refutations"] == 1 and state.remaining_budget == 0
+    fixed = investigate((database, database), case.goal, budget=5, policy="workflow", events=events)
+    assert all(item.action != ("stock_core",) for item in fixed.evidence)
+    assert score(fixed, case)["correct"]
+
+
+def test_business_scoring_detects_false_cause_despite_real_event(tmp_path):
+    from data_analysis_agent.business_benchmark import score
+    from data_analysis_agent.business_cases import RETAIL_TEST, build_retail
+
+    case = next(item for item in RETAIL_TEST if item.id == "stock_vs_bad_press")
+    database = tmp_path / "observed.duckdb"
+    events = build_retail(case, database)
+    state = investigate((database, database), case.goal, budget=5, events=events)
+    evidence = next(item for item in state.evidence if item.action == ("stock",))
+    assert evidence.rows[0][1:4] == (1.0, 56, 56) and evidence.rows[1][1:4] == (0.5, 56, 56)
+    assert evidence.rows[0][-1] == 1400 and evidence.rows[1][-1] == 0
+    assert score(state, case)["correct"]
+    state.verdict = "causal"
+    state.claims.append({"evidence": "E999", "fact": "events:press=matched"})
+    result = score(state, case)
+    assert result["event_retrieval"] and result["event_matching"]
+    assert result["wrong_attribution"] and not result["correct"]
+    assert result["unsupported_claims"] == [("E999", "events:press=matched")]
+
+
+def test_business_frozen_answers_are_reachable_and_splits_disjoint(tmp_path):
+    from pathlib import Path
+
+    from data_analysis_agent.business_cases import DEV, TEST, build_retail
+    from data_analysis_agent.business_investigation import event_findings
+    from data_analysis_agent.business_tools import observe
+
+    assert {item.goal for item in TEST}.isdisjoint(item.goal for item in DEV)
+    assert [sum(item.kind == group for item in TEST) for group in "ABCD"] == [8, 8, 8, 6]
+    olist = Path("data/processed/olist.duckdb")
+    if not olist.is_file():
+        pytest.skip("Build the audited Olist database to verify all observational gold")
+    for case in (*TEST, *DEV):
+        database, events = olist, ()
+        if case.goal.domain == "retail":
+            database = tmp_path / f"{case.id}.duckdb"
+            events = build_retail(case, database)
+        prefixes = {fact.split(":")[0] for fact in case.findings}
+        if case.goal.dimension in prefixes:
+            prefixes.remove(case.goal.dimension)
+            prefixes.add("breakdown")
+        evidence = [observe(database, case.goal, action, f"E{i}", events)
+                    for i, action in enumerate(sorted(prefixes | {"headline"}), 1)]
+        assert all(not item.error for item in evidence), case.id
+        findings = {fact for facts in event_findings(case.goal, evidence).values() for fact in facts}
+        assert set(case.findings) <= findings, case.id
+        assert len(evidence) <= 5, case.id

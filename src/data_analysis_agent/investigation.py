@@ -7,6 +7,10 @@ import math
 import re
 from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .business_tools import BusinessGoal
 
 from .observability import observed_stage
 from .query_contract import DIMENSIONS, QueryContract, aggregate_sql, parse_question
@@ -439,13 +443,19 @@ def _model_loop(state: InvestigationState, databases: tuple[Path, Path], planner
 
 
 @observed_stage("investigation")
-def investigate(databases: tuple[Path, Path], goal: Comparison, *, policy: str = "rule_adaptive",
-                budget: int = 7, planner=None) -> InvestigationState:
+def investigate(databases: tuple[Path, Path], goal: Comparison | BusinessGoal, *, policy: str = "rule_adaptive",
+                budget: int = 7, planner=None, events=()) -> InvestigationState:
     policy = {"adaptive": "rule_adaptive", "frozen": "scan"}.get(policy, policy)
     if policy not in {"rule_adaptive", "workflow", "scan", "llm_adaptive", "llm_frozen"}:
         raise ValueError("Unknown investigation policy")
     if budget < 1 or policy.startswith("llm_") != (planner is not None):
         raise ValueError("A model planner is required only for LLM policies, with positive action budget")
+    if not isinstance(goal, Comparison):
+        from .business_investigation import run_business
+
+        if databases[0] != databases[1]:
+            raise ValueError("Business investigations compare windows in one snapshot")
+        return run_business(databases[0], goal, policy=policy, budget=budget, planner=planner, events=events)
     state = InvestigationState(goal, ("compare", "decompose", "condition", "verify"), budget, policy=policy)
     headline = _observe(state, databases, Action(), {"decision_source": "shared_headline"})
     if headline.error:
