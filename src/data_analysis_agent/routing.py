@@ -33,8 +33,9 @@ def run_task(database: Path, question: str, domain: str, *, command: str = "auto
             payload["model_proposal"] = asdict(generation)
     else:
         comparison = parse_comparison(question, domain)
+        policy = "llm_adaptive" if model and policy == "adaptive" else policy
         payload = report(investigate((baseline or database, database), comparison, policy=policy,
-                                     budget=budget, planner=model.plan if model else None))
+                                     budget=budget, planner=model.plan if policy == "llm_adaptive" else None))
     payload["route"] = policy
     if model:
         payload["model_usage"] = {"name": model.name, "requests": model.requests,

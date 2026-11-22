@@ -22,9 +22,36 @@ python -m pytest
 
 问数接受 `<metric> from <start> to <end> [where field=value [and field=value]] [by day|month]`。日期左闭右开。Olist 支持订单数、三种金额口径（商品成交额、含运费成交额和支付额）、每单平均商品数、平均配送时长、晚到率。过滤字段为 `state`、`weekday`（周一为 1）、`status`。晚到按实际送达时间与预估送达时间比较，只纳入两个时间都有记录的订单。Bike 支持 `rentals`、`average_hourly_rentals`，可按 `workingday`、`weather` 或 `season` 调查。超出支持范围的问数会明确拒答。
 
-离线是默认路径。可用 `OPENAI_API_KEY`、`OPENAI_MODEL`、可选 `OPENAI_BASE_URL` 加 `--online` 复跑。每次 CLI 运行共享请求与 token 预算，默认上限分别为 60 与 250,000，SDK 自动重试关闭。用量未知会停止继续调用，预算中断的任务保留 Trace 并排除出配对汇总。建议从 `python -m data_analysis_agent eval --online --case conditional --output evaluation/online_conditional.json` 开始。本次无模型凭据，在线实验未运行。
+离线是默认路径。可用 `OPENAI_API_KEY`、`OPENAI_MODEL`、可选 `OPENAI_BASE_URL` 加 `--online` 复跑。每次 CLI 运行共享请求与 token 预算，默认上限分别为 60 与 250,000，SDK 自动重试关闭。用量未知会停止继续调用，预算中断的任务保留 Trace 并排除出配对汇总。可先用 `python -m data_analysis_agent eval --mode-b --online --case paired_proxy --budget 3 --output evaluation/replay_online.json` 做一次配对实验。线上失败或用量未知时保留失败记录。
 
-## 冻结实验
+## Mode B 模型规划
+
+`investigate --online` 先执行一次共同的整体对比，后续由模型决定动作。它可以分组、在同一两期人群上条件下钻、核查一个人群总量，或停止。模型给出待验证的方向、调查疑问和 Evidence ID。SQL 编译器固定指标和窗口，工具计算数字、检验方向并产出结论。无效决策会结束本次模型调查。离线路径继续使用 Rule-Adaptive，`auto` 的显式单维分解走固定 Workflow。
+
+```bash
+python -m data_analysis_agent eval --mode-b --budget 5 --bike --output evaluation/replay_offline.json
+python -m data_analysis_agent eval --mode-b --online --case paired_proxy --budget 3 --output evaluation/replay_online.json
+```
+
+3、5、7 是各自的真实动作上限，整体对比计 1 次。LLM-Frozen 和 LLM-Adaptive 共用首条证据、模型、工具与预算。Frozen 后续只看到自己的历史决策，最后由同一确定性渲染器汇总实际工具结果。一次可计分的模型重规划要求模型在观察前留下下一步，工具随后反驳待验证假设，模型再引用新证据执行相关的替代动作。
+
+[本轮逐案结果、在线请求与 Trace](evaluation/mode_b_followup.json)。新增两个冻结用例。平衡单元格的四处干预在整体及单维边际上抵消，Top-3 至少覆盖其中三个才算完成；双变化代理用例同时包含星期效应和由订单状态变化产生的代理信号。
+
+| 动作预算 | 固定 Workflow | Rule-Adaptive | 两组各自的 SQL 调用 |
+| --- | ---: | ---: | ---: |
+| 3 | 2/7 | 5/7 | 36 |
+| 5 | 6/7 | 6/7 | 56 |
+| 7 | 6/7 | 6/7 | 76 |
+
+5 次预算下 Rule-Adaptive 有 3 次有效重规划，固定 Workflow 为 0 次。7 次预算下两组都遗漏了双变化用例的第二个机制，重叠的状态代理贡献占了两个排名位置。上述离线对照共用 Olist 快照，模型请求均为 0。
+
+真实模型使用本机配置的 `deepseek-v4.1-flash`。正式配对完成了历史单维任务（3 次）和条件效应任务（5 次）。固定 Workflow 与 Rule-Adaptive 都是 2/2，LLM-Frozen 和 LLM-Adaptive 都是 0/2。双变化代理任务因超时且用量未知，保留逐案记录，排除出配对汇总。所有在线阶段共 25 次请求，已知用量 87,267 token，另有 2 次请求用量未知。
+
+条件效应任务确实出现了模型动作调整。LLM-Adaptive 原定全量按星期分组，看到 E2 的 SP 贡献后改查 SP 子群的星期分解。E3 已实际执行，随后模型输出无法解析，调查未完成。由于前一个假设得到支持，这次调整在反证口径下计为 0 次有效重规划。LLM-Frozen 未查到州与星期的联合单元。现有在线样本没有支持 LLM 相对确定性基线的质量或成本优势，7 次预算未做在线配对。历史单维任务的首轮试跑中，Workflow 与在线 Adaptive 都完成任务，路由到 Workflow 节省了 2 次模型请求；本例只体现显式单维任务的成本。
+
+Mock 回归单独记录。以真实 Olist 副本上的受控干预为底表，E1 显示晚到率从 9.37% 升至 14.06%；H1 预测 SP 州内变化不大，预定下一步按订单状态分组。E2 测得 SP 州内贡献约 +4.69 个百分点并反驳 H1。脚本模型引用 E2，实际改为在 SP 内按星期下钻。E3 测得周三集中贡献，并触发有证据的停止。这条 Trace 验证协议和执行，属于 Mock。
+
+## V3.2 原始冻结实验
 
 [机器可读结果与 Trace](evaluation/v3_2_offline.json)保存快照和题库哈希、独立真值、逐任务结果、调用数和延迟。Olist V2 的 9 份官方 CSV 均通过 SHA-256 校验。原始数据和干预库留在本地。UCI 按官方压缩包里的 `hour.csv` 计算，共 17,379 条小时记录。数据分别遵循 Olist CC BY-NC-SA 4.0 与 UCI CC BY 4.0。[Kaggle Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) · [UCI Bike Sharing](https://archive.ics.uci.edu/dataset/275/bike-sharing-dataset)
 

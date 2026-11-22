@@ -32,30 +32,79 @@ def source(tmp_path):
     return path
 
 
-def test_agent_changes_path_after_refutation_and_never_receives_manifest(source, tmp_path):
+def choice(dimensions, segment, *, evidence="E1", cohort=None, direction="increase",
+           next_action=None, revises=None):
+    return {
+        "decision": "investigate", "action": {"dimensions": dimensions, "cohort": cohort or {}},
+        "hypothesis": {"segment": segment, "effect": "within", "direction": direction},
+        "evidence_ids": [evidence], "question": "Which population accounts for the change?",
+        "next_action": next_action, "revises": revises,
+    }
+
+
+def test_model_changes_executed_action_after_refutation_without_seeing_manifest(source, tmp_path):
     case = Case("hidden-mechanism", WINDOW, WINDOW, (("SP", 3, 1, 65),))
     observed, manifest = snapshot(source, case, tmp_path / "observed.duckdb")
     assert counts(source, WINDOW) == (1400, 280)
     assert manifest["current"] == (1400, 345)
     goal = parse_comparison(case.question, "olist")
-    runtime_inputs = []
+    planned = {"dimensions": ["status"]}
+    inputs = []
 
     def planner(payload):
-        candidate = json.loads(payload)
-        runtime_inputs.append(candidate)
-        return {"action": candidate["rule_choice"]}
+        data = json.loads(payload)
+        inputs.append(data)
+        assert "rule_choice" not in data and "hidden-mechanism" not in payload and "matched" not in payload
+        if len(inputs) == 1:
+            return choice(["state"], ["SP"], direction="stable", next_action=planned)
+        if len(inputs) == 2:
+            assert data["tested_hypotheses"][0]["state"] == "refuted"
+            return choice(["weekday"], ["3"], cohort={"state": "SP"}, evidence="E2", revises="H1")
+        return {"decision": "stop", "reason": "sufficient_evidence", "evidence_ids": ["E3"],
+                "question": "Can the localized shift account for the observed change?"}
 
-    adaptive = investigate((source, observed), goal, budget=4, planner=planner)
-    frozen = investigate((source, observed), goal, policy="frozen", budget=4, planner=planner)
-    assert [e.action for e in adaptive.evidence] == [(), ("state",), ("state", "weekday"), ("state", "status")]
-    assert [e.action for e in adaptive.evidence] != [e.action for e in frozen.evidence]
+    adaptive = investigate((source, observed), goal, policy="llm_adaptive", budget=6, planner=planner)
+    assert [e.action for e in adaptive.evidence] == [(), ("state",), ("weekday",)]
+    assert adaptive.evidence[-1].cohort == (("state", "SP"),)
+    assert "state = 'SP'" in adaptive.evidence[-1].sql[0]
     assert effective_replans(adaptive) == (1, 1)
-    assert score_investigation(adaptive, manifest, None)["top1"]
-    assert all("hidden-mechanism" not in json.dumps(data) and "matched" not in json.dumps(data)
-               for data in runtime_inputs)
-    assert runtime_inputs[-1]["recent_evidence"] is None
+    scored = score_investigation(adaptive, manifest, None)
+    assert scored["correct"] and scored["top1"] and scored["supported_claims"] == scored["claims"]
     assert "gold" not in report(adaptive)
-    assert adaptive.stop_reason == "budget_exhausted"
+    assert adaptive.stop_reason == "sufficient_evidence"
+    assert adaptive.remaining_budget == 3
+
+
+def test_frozen_only_sees_headline_and_own_actions(source):
+    data = []
+
+    def planner(payload):
+        data.append(json.loads(payload))
+        assert not data[-1]["tested_hypotheses"] and not data[-1]["statistical_candidates"]
+        assert [e["id"] for e in data[-1]["evidence"]] == ["E1"]
+        if len(data) == 1:
+            return choice(["state"], [None])
+        assert len(data[-1]["past_decisions"]) == 1
+        return choice([], [], cohort={"state": "RJ"})
+
+    goal = parse_comparison(Case("normal", WINDOW, WINDOW).question, "olist")
+    state = investigate((source, source), goal, policy="llm_frozen", budget=3, planner=planner)
+    assert [step["evidence"] for step in state.trace] == ["E1", "E2", "E3"]
+    assert state.evidence[-1].cohort == (("state", "RJ"),)
+    assert effective_replans(state) == (0, 0)
+
+
+@pytest.mark.parametrize("invalid", [
+    choice(["state"], ["SP"], evidence="E999"),
+    choice([], [], cohort={"state": "SP' OR TRUE --"}),
+])
+def test_invalid_model_action_stops_without_a_rule_fallback(source, invalid):
+    goal = parse_comparison(Case("normal", WINDOW, WINDOW).question, "olist")
+    state = investigate((source, source), goal, policy="llm_adaptive",
+                        budget=3, planner=lambda _: invalid)
+    assert len(state.evidence) == 1
+    assert state.stop_reason == "planner_error"
+    assert not state.reported
 
 
 @pytest.mark.parametrize("case", [

@@ -5,7 +5,7 @@ import itertools
 import json
 import math
 import re
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 
 from .observability import observed_stage
@@ -62,6 +62,13 @@ class Evidence:
     sql: tuple[str, str]
     segments: tuple[Segment, ...]
     error: str | None = None
+    cohort: tuple[tuple[str, str], ...] = ()
+
+
+@dataclass(frozen=True)
+class Action:
+    dimensions: tuple[str, ...] = ()
+    cohort: tuple[tuple[str, str], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -71,45 +78,55 @@ class Hypothesis:
     effect: str
     state: str
     priority: float
-    contribution: float
+    contribution: float | None
     evidence: tuple[str, ...]
+    cohort: tuple[tuple[str, str], ...] = ()
+    id: str | None = None
+    direction: str | None = None
 
 
 @dataclass
 class InvestigationState:
     goal: Comparison
-    available_tools: tuple[tuple[str, ...], ...]
+    available_tools: tuple[str, ...]
     remaining_budget: int
     evidence: list[Evidence] = field(default_factory=list)
     hypotheses: list[Hypothesis] = field(default_factory=list)
     trace: list[dict] = field(default_factory=list)
     stop_reason: str = ""
     model_error: str | None = None
+    policy: str = "rule_adaptive"
+    model_hypotheses: list[Hypothesis] = field(default_factory=list)
 
     @property
     def reported(self) -> list[Hypothesis]:
-        if self.stop_reason in {"insufficient_evidence", "no_material_change"}:
+        if self.stop_reason in {"insufficient_evidence", "no_material_change", "planner_error"}:
             return []
         return [item for item in self.hypotheses if item.state == "supported"][:3]
 
 
 @observed_stage("investigation_measure")
 def measure(databases: tuple[Path, Path], goal: Comparison, action: tuple[str, ...],
-            evidence_id: str) -> Evidence:
-    contracts = (goal.baseline, goal.current)
+            evidence_id: str, *, cohort: tuple[tuple[str, str], ...] = (),
+            reference: Segment | None = None) -> Evidence:
+    contracts = tuple(replace(contract, filters=contract.filters + cohort)
+                      for contract in (goal.baseline, goal.current))
     sql = tuple(aggregate_sql(contract, action, sufficient_statistics=True) for contract in contracts)
     results = [run_readonly_sql(db, statement, max_rows=300) for db, statement in zip(databases, sql)]
     if any(result.error or result.truncated for result in results):
         error = next(("Truncated evidence" if result.truncated else result.error.message
                       for result in results if result.error or result.truncated))
-        return Evidence(evidence_id, action, sql, (), error)
+        return Evidence(evidence_id, action, sql, (), error, cohort)
     by_period = [{tuple(row[:-2]): (float(row[-2] or 0), row[-1]) for row in result.rows}
                  for result in results]
     sizes = [sum(n for _, n in period.values()) for period in by_period]
     if min(sizes) < 24:
-        return Evidence(evidence_id, action, sql, (), f"Only {sizes} usable observations")
+        return Evidence(evidence_id, action, sql, (), f"Only {sizes} usable observations", cohort)
     center = sum(sum(a for a, _ in period.values()) / size
                  for period, size in zip(by_period, sizes)) / 2
+    if reference is not None:
+        center = (reference.before + reference.after) / 2
+        sizes = [reference.before_n, reference.after_n]
     segments = []
     for key in sorted(set(by_period[0]) | set(by_period[1])):
         (a, n), (b, m) = [period.get(key, (0, 0)) for period in by_period]
@@ -124,7 +141,7 @@ def measure(databases: tuple[Path, Path], goal: Comparison, action: tuple[str, .
         else:
             before, after, within, mix = a, b, b - a, None
         segments.append(Segment(key, n, m, before, after, within, mix))
-    return Evidence(evidence_id, action, sql, tuple(segments))
+    return Evidence(evidence_id, action, sql, tuple(segments), cohort=cohort)
 
 
 def assess(state: InvestigationState) -> list[Hypothesis]:
@@ -133,12 +150,17 @@ def assess(state: InvestigationState) -> list[Hypothesis]:
         return []
     head = state.evidence[0].segments[0]
     scale = max(abs(head.before), abs(head.after), 1e-9)
-    by_action = {e.action: e for e in state.evidence if not e.error}
+    usable = [e for e in state.evidence if not e.error]
+    by_action = {e.action: e for e in usable if not e.cohort}
     hypotheses = []
-    for action, evidence in by_action.items():
+    for evidence in usable:
+        fixed = dict(evidence.cohort)
+        action = tuple(dim for dim in state.goal.dimensions if dim in fixed or dim in evidence.action)
         if not action:
             continue
         for row in evidence.segments:
+            values = fixed | dict(zip(evidence.action, row.key))
+            key = tuple(values[dim] for dim in action)
             for effect in ("within", "mix"):
                 value = getattr(row, effect)
                 if value is None or abs(value) < scale * 0.015:
@@ -148,13 +170,14 @@ def assess(state: InvestigationState) -> list[Hypothesis]:
                 ids = [evidence.id]
                 score = abs(value)
                 if len(action) == 1 and effect == "within" and state.goal.current.spec.mean:
-                    for pair, split in by_action.items():
-                        if len(pair) != 2 or action[0] not in pair:
+                    for split in usable:
+                        coords = dict(split.cohort)
+                        dimensions = set(split.action) | coords.keys()
+                        if len(dimensions) != 2 or action[0] not in dimensions:
                             continue
-                        offset = pair.index(action[0])
                         children = [child for child in split.segments
-                                    if child.key[offset] == row.key[0] and
-                                    min(child.before_n, child.after_n) >= 24]
+                                    if (coords | dict(zip(split.action, child.key)))[action[0]] == key[0]
+                                    and min(child.before_n, child.after_n) >= 24]
                         if len(children) < 2:
                             continue
                         shifts = [child.after - child.before for child in children]
@@ -162,7 +185,7 @@ def assess(state: InvestigationState) -> list[Hypothesis]:
                                                           abs(row.after - row.before) * 1.5):
                             status = "refuted"
                             ids.append(split.id)
-                if len(action) == 2:
+                if len(action) >= 2:
                     # Prefer the simpler account when the conditional shift is similar.
                     score *= 0.8
                     if effect == "within" and state.goal.current.spec.mean and row.before_n and row.after_n:
@@ -170,13 +193,18 @@ def assess(state: InvestigationState) -> list[Hypothesis]:
                         for index, dim in enumerate(action):
                             parent = by_action.get((dim,))
                             parent_row = next((r for r in parent.segments
-                                               if r.key == (row.key[index],)), None) if parent else None
+                                               if r.key == (key[index],)), None) if parent else None
                             if parent_row and parent_row.before_n and parent_row.after_n:
                                 parent_shift = parent_row.after - parent_row.before
                                 if math.isclose(shift, parent_shift, abs_tol=scale * 0.20):
                                     status = "redundant"
-                hypotheses.append(Hypothesis(action, row.key, effect, status, score, value, tuple(ids)))
-    return sorted(hypotheses, key=lambda item: (-item.priority, item.action, item.segment, item.effect))
+                hypotheses.append(Hypothesis(action, key, effect, status, score, value, tuple(ids), evidence.cohort))
+    distinct = {}
+    for item in hypotheses:
+        key = item.action, item.segment, item.effect
+        if key not in distinct or distinct[key].cohort:
+            distinct[key] = item
+    return sorted(distinct.values(), key=lambda item: (-item.priority, item.action, item.segment, item.effect))
 
 
 def _next_action(state: InvestigationState, pending: list[tuple[str, ...]],
@@ -202,89 +230,219 @@ def _next_action(state: InvestigationState, pending: list[tuple[str, ...]],
     return pending[0]
 
 
-@observed_stage("investigation")
-def investigate(databases: tuple[Path, Path], goal: Comparison, *, policy: str = "adaptive",
-                budget: int = 7, planner=None) -> InvestigationState:
-    singles = [(dimension,) for dimension in goal.dimensions]
-    pairs = list(itertools.combinations(goal.dimensions, 2))
-    actions = [(), *singles, *pairs]
-    if policy == "workflow":
-        actions = [(), *singles[:2], *pairs[:1], *singles[2:], *pairs[1:]]
-    state = InvestigationState(goal, tuple(actions), budget)
-    planned_before_evidence = None
-    while state.remaining_budget and actions:
-        default = actions[0]
-        chosen = default
-        if policy == "adaptive" and state.evidence:
-            latest = state.evidence[-1]
-            chosen = _next_action(state, actions, latest.action, latest.id)
-        prediction = None
-        if planner is not None and state.evidence and policy in {"adaptive", "frozen"}:
-            latest = state.evidence[-1]
-            observations = None if policy == "frozen" else {
-                "id": latest.id, "action": latest.action, "error": latest.error,
-                "segments": [asdict(segment) for segment in sorted(
-                    latest.segments, key=lambda row: -abs((row.within or 0) + (row.mix or 0)),
-                )[:8]],
-                "hypotheses": [asdict(item) for item in state.hypotheses[:12]],
-            }
-            try:
-                proposal = planner(json.dumps({
-                    "goal": asdict(goal), "available": actions, "recent_evidence": observations,
-                    "rule_choice": chosen,
-                }, default=str))
-                proposed = tuple(proposal.get("action", ()))
-                if proposed not in actions:
-                    raise ValueError("Planner returned an unavailable action")
-                chosen = proposed
-                if (isinstance(proposal.get("segment"), list)
-                        and len(proposal["segment"]) == len(chosen)
-                        and all(isinstance(value, str) for value in proposal["segment"])
-                        and proposal.get("effect") in ("within", "mix")
-                        and proposal.get("direction") in (-1, 1)):
-                    prediction = {key: proposal[key] for key in ("segment", "effect", "direction")}
-            except (ValueError, TypeError, RuntimeError, AttributeError) as exc:
-                state.model_error = str(exc)
-        state.trace.append({"action": chosen, "default": default,
-                            "planned_before_evidence": planned_before_evidence,
-                            "after": state.evidence[-1].id if state.evidence else None})
-        actions.remove(chosen)
-        planned_before_evidence = ((_next_action(state, actions, chosen)
-                                    if policy == "adaptive" else actions[0]) if actions else None)
-        previous = {(h.action, h.segment, h.effect): h.state for h in state.hypotheses}
-        evidence = measure(databases, goal, chosen, f"E{len(state.evidence) + 1}")
-        state.evidence.append(evidence)
-        if prediction is not None:
-            target = next((row for row in evidence.segments
-                           if row.key == tuple(prediction["segment"])), None)
-            value = getattr(target, prediction["effect"]) if target else None
-            state.trace[-1]["model_hypothesis"] = {
-                **prediction, "evidence": evidence.id,
-                "status": ("insufficient" if value is None else "supported"
-                           if value * prediction["direction"] > 0 else "refuted"),
-                "observed_contribution": value,
-            }
-        state.remaining_budget -= 1
-        state.hypotheses = assess(state)
-        state.trace[-1]["updates"] = [
+def _observe(state: InvestigationState, databases: tuple[Path, Path], action: Action,
+             step: dict) -> Evidence:
+    previous = {(h.action, h.segment, h.effect): h.state for h in state.hypotheses}
+    evidence = measure(databases, state.goal, action.dimensions, f"E{len(state.evidence) + 1}",
+                       cohort=action.cohort, reference=state.evidence[0].segments[0] if action.cohort else None)
+    state.evidence.append(evidence)
+    state.remaining_budget -= 1
+    state.hypotheses = assess(state)
+    step.update({
+        "action": action.dimensions, "cohort": dict(action.cohort), "evidence": evidence.id,
+        "updates": [
             {"action": h.action, "segment": h.segment, "effect": h.effect,
              "before": previous.get((h.action, h.segment, h.effect), "untested"),
              "after": h.state, "evidence": h.evidence}
-            for h in state.hypotheses
-            if previous.get((h.action, h.segment, h.effect)) != h.state
-        ]
-        if not chosen and evidence.error:
-            state.stop_reason = "insufficient_evidence"
-            break
-    if not state.stop_reason:
-        head = state.evidence[0].segments[0] if state.evidence and not state.evidence[0].error else None
-        if head is None or (not state.hypotheses and any(e.error for e in state.evidence)):
-            state.stop_reason = "insufficient_evidence"
-        elif not actions and not state.reported and math.isclose(
-                head.before, head.after, rel_tol=0.015, abs_tol=1e-9):
-            state.stop_reason = "no_material_change"
+            for h in state.hypotheses if previous.get((h.action, h.segment, h.effect)) != h.state
+        ],
+    })
+    state.trace.append(step)
+    return evidence
+
+
+def _rule_loop(state: InvestigationState, databases: tuple[Path, Path]) -> None:
+    singles = [(dimension,) for dimension in state.goal.dimensions]
+    pairs = list(itertools.combinations(state.goal.dimensions, 2))
+    pending = ([*singles[:2], *pairs[:1], *singles[2:], *pairs[1:]]
+               if state.policy == "workflow" else [*singles, *pairs])
+    planned = pending[0] if pending else None
+    while state.remaining_budget and pending:
+        latest = state.evidence[-1]
+        chosen = (_next_action(state, pending, latest.action, latest.id)
+                  if state.policy == "rule_adaptive" else pending[0])
+        pending.remove(chosen)
+        next_plan = ((_next_action(state, pending, chosen) if state.policy == "rule_adaptive" else pending[0])
+                     if pending else None)
+        _observe(state, databases, Action(chosen), {
+            "decision_source": "rule" if state.policy == "rule_adaptive" else "fixed",
+            "after": latest.id, "planned_before_evidence": planned,
+        })
+        planned = next_plan
+    state.stop_reason = ("budget_exhausted" if pending else
+                         "no_material_change" if _no_material_change(state) else "coverage_complete")
+
+
+def _no_material_change(state: InvestigationState) -> bool:
+    head = state.evidence[0].segments[0]
+    covered = {e.action for e in state.evidence if not e.error and not e.cohort}
+    required = {*itertools.combinations(state.goal.dimensions, 2),
+                *((dimension,) for dimension in state.goal.dimensions)}
+    return (required <= covered and not state.reported
+            and math.isclose(head.before, head.after, rel_tol=0.015, abs_tol=1e-9))
+
+
+def _parse_action(payload: dict, goal: Comparison) -> Action:
+    if not isinstance(payload, dict) or set(payload) - {"dimensions", "cohort"}:
+        raise ValueError("action must contain only dimensions and optional cohort")
+    dims, cohort = payload.get("dimensions"), payload.get("cohort", {})
+    if (not isinstance(dims, list) or any(dim not in goal.dimensions for dim in dims)
+            or len(set(dims)) != len(dims) or len(dims) > 2
+            or not isinstance(cohort, dict) or len(cohort) > 1
+            or any(dim not in goal.dimensions or dim in dims or not isinstance(value, str)
+                   for dim, value in cohort.items()) or not (dims or cohort)):
+        raise ValueError("Unsupported dimensions or cohort")
+    filters = tuple(cohort.items())
+    replace(goal.current, filters=goal.current.filters + filters)
+    return Action(tuple(dim for dim in goal.dimensions if dim in dims), filters)
+
+
+def _action_json(action: Action) -> dict:
+    return {"dimensions": action.dimensions, "cohort": dict(action.cohort)}
+
+
+def _observation(evidence: Evidence) -> dict:
+    def important(row: Segment) -> float:
+        return max(abs(row.within or 0), abs(row.mix or 0))
+
+    rows = sorted(evidence.segments, key=important, reverse=True)[:10]
+    return {"id": evidence.id, "action": evidence.action, "cohort": dict(evidence.cohort),
+            "error": evidence.error, "segments": [asdict(row) for row in rows],
+            "omitted_segments": len(evidence.segments) - len(rows)}
+
+
+def _model_loop(state: InvestigationState, databases: tuple[Path, Path], planner) -> None:
+    frozen = state.policy == "llm_frozen"
+    history: list[dict] = []
+    attempted: set[Action] = set()
+    while state.remaining_budget:
+        visible = state.evidence[:1] if frozen else state.evidence
+        payload = {
+            "goal": asdict(state.goal), "metric_definition": state.goal.current.spec.definition,
+            "dimensions": state.goal.dimensions, "remaining_actions": state.remaining_budget,
+            "evidence": [_observation(item) for item in visible],
+            "past_decisions": history,
+            "tested_hypotheses": [] if frozen else [asdict(h) for h in state.model_hypotheses],
+            "statistical_candidates": [] if frozen else [asdict(h) for h in state.hypotheses[:10]],
+        }
+        try:
+            decision = planner(json.dumps(payload, default=str))
+            if not isinstance(decision, dict):
+                raise ValueError("Planner must return an object")
+            ids = decision.get("evidence_ids")
+            if (not isinstance(ids, list) or not ids
+                    or any(not isinstance(item, str) or item not in {e.id for e in visible} for item in ids)):
+                raise ValueError("Decision must cite visible evidence")
+            question = decision.get("question")
+            if not isinstance(question, str) or not question.strip() or len(question) > 300:
+                raise ValueError("Decision must state a short investigative question")
+            step = {"decision_source": "model", "after": visible[-1].id, "evidence_ids": ids,
+                    "question": question, "prior_plan": history[-1]["next_action"] if history else None,
+                    "visible_evidence": [item.id for item in visible]}
+            if decision.get("decision") == "stop":
+                reason = decision.get("reason")
+                if reason not in ("insufficient_evidence", "no_material_change", "sufficient_evidence"):
+                    raise ValueError("Unsupported stop reason")
+                if reason == "sufficient_evidence" and any(
+                    set(h.evidence) <= set(ids) for h in state.reported
+                ):
+                    state.stop_reason = reason
+                elif reason == "no_material_change" and _no_material_change(state):
+                    state.stop_reason = reason
+                else:
+                    state.stop_reason = "insufficient_evidence"
+                state.trace.append({**step, "stop_requested": reason, "stop_reason": state.stop_reason})
+                return
+            if decision.get("decision") != "investigate":
+                raise ValueError("Expected investigate or stop")
+            action = _parse_action(decision.get("action"), state.goal)
+            if action in attempted:
+                raise ValueError("Action already executed")
+            next_action = (_parse_action(decision["next_action"], state.goal)
+                           if decision.get("next_action") is not None else None)
+            if next_action == action or next_action in attempted:
+                raise ValueError("Provisional next action must be distinct and unused")
+            pred = decision.get("hypothesis")
+            if not isinstance(pred, dict):
+                raise ValueError("Investigation must propose a testable hypothesis")
+            segment, effect, direction = pred.get("segment"), pred.get("effect"), pred.get("direction")
+            if isinstance(segment, list) and segment and len(segment) == len(action.dimensions) and all(
+                value is None for value in segment
+            ):
+                segment = None
+            if ("segment" not in pred
+                    or (segment is not None and (not isinstance(segment, list)
+                        or len(segment) != len(action.dimensions)
+                        or any(not isinstance(item, str) for item in segment)))
+                    or effect not in ("within", "mix") or direction not in ("increase", "decrease", "stable")):
+                raise ValueError("Hypothesis needs segment, effect and direction matching the action")
+            # A response uses the requested order; the tool canonicalizes dimensions for deduplication.
+            if segment is not None:
+                values = dict(zip(decision["action"]["dimensions"], segment))
+                segment = tuple(values[dim] for dim in action.dimensions)
+            revises = decision.get("revises")
+            if revises is not None and revises not in {f"H{i + 1}" for i in range(len(history))}:
+                raise ValueError("Only an existing hypothesis ID can be revised")
+        except (ValueError, TypeError, RuntimeError) as exc:
+            state.model_error = str(exc)
+            state.stop_reason = "planner_error"
+            state.trace.append({"decision_source": "model", "error": state.model_error,
+                                "visible_evidence": [item.id for item in visible]})
+            return
+        hid = f"H{len(history) + 1}"
+        attempted.add(action)
+        hypothesis = Hypothesis(action.dimensions, segment or (), effect, "pending", 0, None, tuple(ids),
+                                action.cohort, hid, direction)
+        state.model_hypotheses.append(hypothesis)
+        original = next((h for h in state.model_hypotheses if h.id == revises), None)
+        step.update({
+            "hypothesis_id": hid, "hypothesis_before": "pending", "revises": revises,
+            "next_action": _action_json(next_action) if next_action else None,
+            "replan": bool(
+                not frozen and step["prior_plan"] and _action_json(action) != step["prior_plan"] and original
+                and original.state == "refuted" and original.evidence[-1] == visible[-1].id in ids
+                and (set(original.action) | dict(original.cohort).keys())
+                    & (set(action.dimensions) | dict(action.cohort).keys())
+            ),
+        })
+        evidence = _observe(state, databases, action, step)
+        if segment is None:
+            row = max(evidence.segments, key=lambda row: abs(getattr(row, effect) or 0), default=None)
         else:
-            state.stop_reason = "budget_exhausted" if actions else "coverage_complete"
+            row = next((row for row in evidence.segments if row.key == segment), None)
+        value = getattr(row, effect) if row else None
+        head = state.evidence[0].segments[0]
+        cutoff = max(abs(head.before), abs(head.after), 1e-9) * 0.015
+        if value is None or (effect == "within" and min(row.before_n, row.after_n) < 24):
+            status = "insufficient"
+        else:
+            actual = "increase" if value > cutoff else "decrease" if value < -cutoff else "stable"
+            status = "supported" if actual == direction else "refuted"
+        state.model_hypotheses[-1] = replace(hypothesis, state=status, contribution=value,
+                                               segment=row.key if row else hypothesis.segment,
+                                               evidence=(*ids, evidence.id))
+        step["hypothesis_after"] = status
+        history.append({"hypothesis_id": hid, "action": _action_json(action), "question": question,
+                        "hypothesis": pred, "next_action": step["next_action"]})
+    state.stop_reason = "budget_exhausted"
+
+
+@observed_stage("investigation")
+def investigate(databases: tuple[Path, Path], goal: Comparison, *, policy: str = "rule_adaptive",
+                budget: int = 7, planner=None) -> InvestigationState:
+    policy = {"adaptive": "rule_adaptive", "frozen": "scan"}.get(policy, policy)
+    if policy not in {"rule_adaptive", "workflow", "scan", "llm_adaptive", "llm_frozen"}:
+        raise ValueError("Unknown investigation policy")
+    if budget < 1 or policy.startswith("llm_") != (planner is not None):
+        raise ValueError("A model planner is required only for LLM policies, with positive action budget")
+    state = InvestigationState(goal, ("compare", "decompose", "condition", "verify"), budget, policy=policy)
+    headline = _observe(state, databases, Action(), {"decision_source": "shared_headline"})
+    if headline.error:
+        state.stop_reason = "insufficient_evidence"
+    elif policy.startswith("llm_"):
+        _model_loop(state, databases, planner)
+    else:
+        _rule_loop(state, databases)
     return state
 
 

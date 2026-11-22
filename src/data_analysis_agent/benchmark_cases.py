@@ -99,6 +99,18 @@ INV_DEV = (Case("dev_north", ("2018-02-01", "2018-03-01"), ("2018-02-01", "2018-
                 (("MG", 0, 1, 140),)),)
 
 
+# Mode B follow-up frozen before the first online run. Equal signed flips make
+# every one-way marginal uninformative in balanced_cells; pairs distinguish them.
+MODE_B_TEST = (
+    Case("balanced_cells", WINDOW, WINDOW,
+         (("SP", 1, 1, 48), ("SP", 2, -1, 48), ("RJ", 1, -1, 48), ("RJ", 2, 1, 48))),
+    Case("paired_proxy", ("2018-05-01", "2018-07-01"), ("2018-05-01", "2018-07-01"),
+         (("SP", 3, 2, 510), ("SP", 1, -1, 35))),
+    *(case for case in INV_TEST if case.id in
+      {"conditional", "linked_proxy", "normal", "missing", "historical_fixed"}),
+)
+
+
 def counts(database: Path, window: tuple[str, str], state: str | None = None) -> tuple[int, int]:
     with duckdb.connect(str(database), read_only=True) as connection:
         return connection.execute(
@@ -117,7 +129,7 @@ def historical_groups(database: Path, case: Case) -> dict[str, list[list[tuple]]
     dimensions = (case.dimension,) if case.dimension else tuple(columns)
     output = {}
     with duckdb.connect(str(database), read_only=True) as connection:
-        for width in (1, 2):
+        for width in (1, 2, 3):
             for action in combinations(dimensions, width):
                 keys = ", ".join(f"COALESCE(({columns[name]})::VARCHAR, '(unknown)')" for name in action)
                 statement = (

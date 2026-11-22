@@ -239,7 +239,9 @@ def main(argv: list[str] | None = None) -> int:
         command.add_argument("--online", action="store_true")
         if name == "eval":
             command.add_argument("--split", choices=("dev", "test"), default="test")
-            command.add_argument("--case")
+            command.add_argument("--case", help="Case ID or comma-separated Mode B case IDs")
+            command.add_argument("--mode-b", action="store_true", help="Compare Mode B policies")
+            command.add_argument("--budget", type=int, choices=(3, 5, 7), default=5)
             command.add_argument("--bike", action="store_true", help="Run UCI cross-domain smoke checks")
             command.add_argument("--output", type=Path)
         else:
@@ -259,15 +261,27 @@ def main(argv: list[str] | None = None) -> int:
             raise ValueError(f"Missing database {database}. Run python -m scripts.prepare_data {domain}")
         model = BudgetedModel() if args.online else None
         if args.command == "eval":
-            from .benchmark import evaluate
+            from .benchmark import evaluate, evaluate_mode_b
 
-            payload = evaluate(database, split=args.split, case_id=args.case, online=model, bike=args.bike)
+            if args.mode_b or model:
+                payload = evaluate_mode_b(database, split=args.split,
+                                          case_ids=tuple(args.case.split(",")) if args.case else (),
+                                          budget=args.budget, online=model, bike=args.bike)
+            else:
+                payload = evaluate(database, split=args.split, case_id=args.case, bike=args.bike)
             if args.output:
                 args.output.parent.mkdir(parents=True, exist_ok=True)
                 pending = args.output.with_suffix(".tmp")
                 pending.write_text(json.dumps(payload, default=str, ensure_ascii=False, separators=(",", ":")) + "\n")
                 pending.replace(args.output)
-                payload = {"output": str(args.output), "summary": payload["summary"]}
+                summary = {"output": str(args.output), "summary": payload["summary"]}
+                if "skipped_or_partial" in payload:
+                    summary["skipped_or_partial"] = [
+                        {"case": item["case"], "reason": item["reason"]}
+                        for item in payload["skipped_or_partial"]
+                    ]
+                    summary["online_usage"] = payload["online_usage"]
+                payload = summary
         else:
             baseline = getattr(args, "baseline_db", None)
             if baseline and not baseline.is_file():
@@ -275,7 +289,7 @@ def main(argv: list[str] | None = None) -> int:
             payload = run_task(database, args.question, domain, command=args.command,
                                baseline=baseline, budget=getattr(args, "budget", 7), model=model)
         print(json.dumps(payload, default=str, ensure_ascii=False, indent=2))
-        return int(payload.get("status") == "refused")
+        return int(payload.get("status") == "refused" or payload.get("stop_reason") == "planner_error")
     except (ValueError, OSError, RuntimeError) as exc:
         print(json.dumps({"status": "refused", "error": str(exc)}, ensure_ascii=False))
         return 1

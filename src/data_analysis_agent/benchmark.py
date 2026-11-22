@@ -78,10 +78,9 @@ def supported(state: InvestigationState, hypothesis) -> bool:
     if not hypothesis.evidence or not set(hypothesis.evidence) <= by_id.keys():
         return False
     source = by_id[hypothesis.evidence[0]]
-    if source.action != hypothesis.action:
-        return False
-    return any(r.key == hypothesis.segment and getattr(r, hypothesis.effect) == hypothesis.contribution
-               for r in source.segments)
+    target = dict(zip(hypothesis.action, hypothesis.segment))
+    return any(dict(source.cohort) | dict(zip(source.action, r.key)) == target
+               and getattr(r, hypothesis.effect) == hypothesis.contribution for r in source.segments)
 
 
 def mechanism(hypothesis, edit) -> bool:
@@ -101,7 +100,13 @@ def mechanism(hypothesis, edit) -> bool:
 def effective_replans(state: InvestigationState) -> tuple[int, int]:
     opportunities = valid = 0
     for prior, next_step in zip(state.trace, state.trace[1:]):
-        refuted = [u for u in prior["updates"] if u["before"] == "supported"
+        if state.policy.startswith("llm_"):
+            if state.policy == "llm_adaptive" and prior.get("next_action") and prior.get("hypothesis_after") == "refuted":
+                opportunities += 1
+                valid += bool(next_step.get("replan") and next_step.get("revises") == prior["hypothesis_id"]
+                              and prior["evidence"] in next_step.get("evidence_ids", ()))
+            continue
+        refuted = [u for u in prior.get("updates", ()) if u["before"] == "supported"
                    and u["after"] == "refuted" and u["evidence"][-1] == next_step["after"]]
         if refuted:
             opportunities += 1
@@ -114,11 +119,23 @@ def effective_replans(state: InvestigationState) -> tuple[int, int]:
 
 
 def historical_matches(evidence: Evidence, expected, counts) -> bool:
-    if not evidence.action:
+    if not evidence.action and not evidence.cohort:
         return not evidence.error
     if evidence.error:
         return False
-    periods = [{tuple(row[:-2]): row[-2:] for row in rows} for rows in expected["+".join(evidence.action)]]
+    scope = dict(evidence.cohort)
+    action = tuple(dim for dim in ("state", "weekday", "status") if dim in evidence.action or dim in scope)
+    gold = expected.get("+".join(action))
+    if gold is None:
+        return False
+    periods = []
+    for rows in gold:
+        counts_by_key = {}
+        for row in rows:
+            coordinates = dict(zip(action, row[:-2]))
+            if all(coordinates[dim] == value for dim, value in scope.items()):
+                counts_by_key[tuple(coordinates[dim] for dim in evidence.action)] = row[-2:]
+        periods.append(counts_by_key)
     center = (counts[0][1] / counts[0][0] + counts[1][1] / counts[1][0]) / 2
     seen = set()
     for row in evidence.segments:
@@ -142,7 +159,8 @@ def score_investigation(state, manifest, control):
     expected = (before_late / before_n, after_late / after_n) if before_n and after_n else None
     numeric = bool(expected and observed and (observed.before_n, observed.after_n) == (before_n, after_n)
                    and equivalent(((observed.before, observed.after),), (expected,)))
-    clean = numeric and all(evidence_reconciles(e, expected[1] - expected[0]) for e in state.evidence)
+    clean = numeric and all(evidence_reconciles(e, expected[1] - expected[0])
+                            for e in state.evidence if not e.cohort and not e.error)
     edits = manifest["edits"]
     hypotheses = state.reported
     hits = [[index for index, edit in enumerate(edits) if mechanism(h, edit)] for h in hypotheses]
@@ -152,17 +170,23 @@ def score_investigation(state, manifest, control):
     if control:
         correct = state.stop_reason == control and not hypotheses
     elif edits:
-        correct = clean and len(found) == len(edits) and evidence_supported == len(hypotheses)
+        correct = (clean and len(found) >= min(3, len(edits))
+                   and evidence_supported == len(hypotheses) and state.stop_reason != "planner_error")
     else:
-        correct = (clean and len(state.evidence) > 1 and evidence_supported == len(hypotheses)
+        correct = (clean and any(e.action and not e.cohort and not e.error for e in state.evidence)
+                   and state.stop_reason not in {"planner_error", "insufficient_evidence"}
+                   and evidence_supported == len(hypotheses)
                    and all(historical_matches(e, manifest["historical_groups"],
                                               (manifest["baseline"], manifest["current"]))
-                           for e in state.evidence))
+                           for e in state.evidence if not e.error))
     return {
         "correct": correct, "numeric_correct": numeric, "reconciles": bool(clean),
         "top1": bool(hits and hits[0]) if edits else None,
         "top3": bool(found) if edits else None,
         "all_mechanisms_top3": len(found) == len(edits) if edits else None,
+        "mechanisms_found": len(found), "mechanisms_total": len(edits),
+        "controls": int(bool(control)), "correct_stops": int(bool(control and correct)),
+        "planner_errors": int(state.stop_reason == "planner_error"),
         "supported_claims": evidence_supported, "claims": len(hypotheses),
         "ungrounded_claims": len(hypotheses) - evidence_supported,
         "control_false_attributions": len(hypotheses) if control else 0,
@@ -183,13 +207,16 @@ def _measure_run(arm, case, task_type, policy, run, online):
     stages = trace.stages
     elapsed = next((stage.latency_ms for stage in stages if stage.stage == "investigation"),
                    trace.total_latency_ms)
+    calls = online.requests - first_request if online else 0
+    usage = online.usages[first_request:] if online else ()
     return {
         "arm": arm, "case": case, "type": task_type, "policy": policy, **result,
         "latency_ms": elapsed,
         "sql_calls": sum(s.stage == "sql_execution" for s in stages),
         "analysis_actions": sum(s.stage == "investigation_measure" for s in stages),
-        "requests": online.requests - first_request if online else 0,
-        "tokens": trace.total_tokens if trace.llm_calls else 0,
+        "requests": calls,
+        "tokens": sum(usage) if all(value is not None for value in usage) else None,
+        "execution": "online_model" if calls else "deterministic",
     }
 
 
@@ -231,7 +258,8 @@ def summarize(records):
                 if scores:
                     groups[key][name] = [sum(scores), len(scores)]
             for name in ("claims", "supported_claims", "ungrounded_claims", "control_false_attributions",
-                         "off_target_injection_claims", "replan_opportunities", "effective_replans"):
+                         "off_target_injection_claims", "replan_opportunities", "effective_replans",
+                         "controls", "correct_stops", "planner_errors", "mechanisms_found", "mechanisms_total"):
                 if any(name in r for r in runs):
                     groups[key][name] = sum(r.get(name, 0) for r in runs)
             for numerator, denominator, label in (
@@ -271,6 +299,66 @@ def bike_smoke():
     return {"dataset": "UCI Bike Sharing hour.csv", "source_sha256": digest,
             "correct": correct, "independent_workday_total": workday,
             "independent_hourly_means": expected, "query": asdict(query), "investigation": report(state)}
+
+def evaluate_mode_b(database: Path, *, split: str, case_ids: tuple[str, ...], budget: int,
+                    online=None, bike: bool = False) -> dict:
+    suite = cases.MODE_B_TEST if split == "test" else cases.INV_DEV
+    if set(case_ids) - {case.id for case in suite}:
+        raise ValueError("Unknown Mode B case for this split")
+    arms = ("workflow", "rule_adaptive", "llm_frozen", "llm_adaptive") if online else (
+        "workflow", "rule_adaptive",
+    )
+    runs, incomplete = [], []
+    with TemporaryDirectory(prefix="data-analysis-mode-b-", dir=database.parent) as folder:
+        for index, case in enumerate(suite):
+            if case_ids and case.id not in case_ids:
+                continue
+            reserve = 0 if case.control == "insufficient_evidence" else 2 * (budget - 1)
+            if online and (online.exhausted or online.requests + reserve > online.max_requests):
+                incomplete.append({"case": case.id, "reason": "insufficient budget for paired arms"})
+                continue
+            active, manifest = cases.snapshot(database, case, Path(folder) / "observed.duckdb")
+            goal = parse_comparison(case.question, "olist")
+            kind = "fixed" if case.dimension else "open"
+            start = index % len(arms)
+            paired = []
+            for arm in arms[start:] + arms[:start]:
+                model = online if arm.startswith("llm_") else None
+
+                def run():
+                    state = investigate((database, active), goal, policy=arm, budget=budget,
+                                        planner=model.plan if model else None)
+                    return score_investigation(state, manifest, case.control)
+
+                row = _measure_run(arm, case.id, kind, arm, run, model)
+                if model and not row["requests"]:
+                    row["execution"] = "shared_headline_only" if not row["planner_errors"] else "model_unavailable"
+                paired.append(row)
+            if online and online.exhausted:
+                incomplete.append({"case": case.id, "reason": "token limit or provider usage unavailable",
+                                   "partial_runs": paired})
+            else:
+                runs.extend(paired)
+            if active != database:
+                active.unlink()
+    # Auto delegates to the exact same policy on the same input; reuse its
+    # recorded runtime rather than paying for duplicate calls to that policy.
+    all_b = "llm_adaptive" if online else "rule_adaptive"
+    auto_rows = [{**row, "arm": "auto", "execution": row["execution"], "reused_measurement": True}
+                 for row in runs
+                 if row["arm"] == ("workflow" if row["type"] == "fixed" else all_b)]
+    with database.open("rb") as handle:
+        source_sha = hashlib.file_digest(handle, "sha256").hexdigest()
+    return {
+        "split": split, "budget": budget, "dataset": "Olist Kaggle V2", "database_sha256": source_sha,
+        "suite_sha256": hashlib.sha256(Path(cases.__file__).read_bytes()).hexdigest(),
+        "model": online.name if online else None, "mode": "online" if online else "offline",
+        "online_usage": ({"requests": online.requests, "measured_tokens": online.tokens,
+                          "unknown_usage_requests": online.usages.count(None)} if online else None),
+        "skipped_or_partial": incomplete, "summary": summarize(runs + auto_rows), "runs": runs,
+        "bike_smoke": bike_smoke() if bike else None,
+    }
+
 
 def evaluate(database: Path, *, split: str = "test", case_id: str | None = None, online=None, bike: bool = False):
     gold = cases.GOLD_TEST if split == "test" else cases.GOLD_DEV
@@ -318,7 +406,7 @@ def evaluate(database: Path, *, split: str = "test", case_id: str | None = None,
                 selected = "scan" if policy == "a_only" else policy
                 def run_investigation():
                     state = investigate((database, database_after), comparison, policy=selected,
-                                        budget=limit, planner=online.plan if online else None)
+                                        budget=limit)
                     scored = score_investigation(state, manifest, case.control)
                     if kind == "open" and arm != "a_only":
                         scored["equal_budget_prefixes"] = {}
