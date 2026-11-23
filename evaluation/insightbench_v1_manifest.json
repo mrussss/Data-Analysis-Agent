@@ -1,0 +1,33 @@
+{
+  "upstream": "https://github.com/ServiceNow/insight-bench",
+  "revision": "33c27c1282cb7ed73267d36fb84e27b6ea8aac2b",
+  "split": "public_development",
+  "licenses": {
+    "upstream_repository": "MIT",
+    "dataset_card": "CC-BY-4.0",
+    "dataset_card_url": "https://huggingface.co/datasets/ServiceNow/insight_bench"
+  },
+  "cases": {
+    "flag-1": {
+      "csv": "data/notebooks/csvs/flag-1.csv",
+      "reference": "data/notebooks/flag-1.json",
+      "goal": "Find the discrepancy and imbalance in distribution of incidents assigned across categories"
+    },
+    "flag-2": {
+      "csv": "data/notebooks/csvs/flag-2.csv",
+      "reference": "data/notebooks/flag-2.json",
+      "goal": "Analyze the trend of incident resolution times and identify potential reasons for any observed patterns."
+    }
+  },
+  "files": {
+    "insightbench/benchmarks.py": "19f16a0504bea0b2fe7e67e463837a40afb0d419e0b9e1c109cd1535db02659a",
+    "insightbench/metrics.py": "aa9a198d84cb746a55edc184869536ae0bf93a41b23db75f8c7d2c3a5d5db059",
+    "insightbench/utils/metrics_utils.py": "28aa1426dea667d33cf5d57c3abbf9c73270cdb7228c1b02903aa04e35ab3c45",
+    "insightbench/utils/eval_utils.py": "63ada21de6f2ace9b4d008ed080664f295c438458f03d29c697603e270edb1ba",
+    "LICENSE": "bcf1be8cda752ccb536f202804e6586b871db30c84758cc47752e050dd40e707",
+    "data/notebooks/csvs/flag-1.csv": "7a262de8d6654f97c89775d8392cfd4e9f7fd8f028545cb874fcee3d2cd3278c",
+    "data/notebooks/flag-1.json": "fd34cb2d85314107b7ae13234feb64121d611cb77fbfd4d871577f21661b5e1e",
+    "data/notebooks/csvs/flag-2.csv": "585163e1f6b210f61cebac4a37c63b709c8faba60068e46fc0706a1f0c5d2cf4",
+    "data/notebooks/flag-2.json": "808e500d249e97df74f63e4b8a658ea6f910c9d7202533a7e362c9c8a835d9bb"
+  }
+}

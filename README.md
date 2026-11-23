@@ -24,6 +24,35 @@ python -m pytest
 
 离线是默认路径。可用 `OPENAI_API_KEY`、`OPENAI_MODEL`、可选 `OPENAI_BASE_URL` 加 `--online` 复跑。每次 CLI 运行共享请求与 token 预算，默认上限分别为 60 与 250,000，SDK 自动重试关闭。预算内仅对临时网络故障、超时、429 和 5xx 按退避重试至多两次。每次尝试均占请求名额，可能已送达而用量未知时保留预留额度。成功响应缺少用量时停止。
 
+## 通用 CSV 分析与 InsightBench
+
+通用分析入口接受一个本地 CSV 和一个业务目标。它先识别列类型、缺失率、唯一值、数值分布和可解析的时间，再生成 SQL 分析问题。查询在独立 DuckDB 快照上运行，最多三次，每次返回最多 24 行。报告中的数字由所引用的结果单元格渲染，另行保留分析范围、缺失数据和未解决问题。CSV 限 32 MiB、20 万行和 64 列。
+
+使用现有 DeepSeek Low 配置分析业务数据：
+
+```bash
+python -m scripts.analyze_csv --csv ./input.csv \
+  --goal 'Explain the most important changes and check data coverage.' \
+  --output evaluation/csv_analysis.json
+```
+
+InsightBench 的 `flag-1` 和 `flag-2` 属于公开开发样例。两组共用初始计划协议、查询工具和动作上限。固定组先排完分析，动态组可依据实测结果修改后续 SQL。数据、参考洞察、许可证和计分源码按提交固定并校验 SHA-256。评分在独立进程中执行，使用固定版本的官方 `evaluate_insights` 函数及其聚合逻辑，将 Hugging Face 的单样本 ROUGE 调用适配为本地 `rouge-score`。数值引用检查衡量报告和执行结果的一致性，业务结论另需看证据和适用范围。 [数据与计分清单](evaluation/insightbench_v1_manifest.json)
+
+```bash
+python -m venv .venv-insightbench-scorer
+.venv-insightbench-scorer/bin/python -m pip install -r evaluation/insightbench_v1_requirements.txt
+
+python -m scripts.evaluate_insightbench --download --offline-smoke \
+  --scorer-python .venv-insightbench-scorer/bin/python \
+  --output evaluation/insightbench_smoke_local.json
+
+python -m scripts.evaluate_insightbench --model-agent \
+  --scorer-python .venv-insightbench-scorer/bin/python \
+  --output evaluation/insightbench_v1_online.json
+```
+
+离线 smoke 使用脚本化规划回复，模型用量为零。在线实验 `insightbench-csv-v1` 单独记账，上限为 24 次真实请求与 80,000 Token。已有在线尝试时保留原结果。使用 `--rescore <已有结果> --output <新文件>` 可对已保存的预测重新计分，且不调用模型。
+
 ## Mode B 业务调查
 
 旧实验主要在同一晚到率口径下切分州、星期和订单状态。多数题可以用几次预写 SQL 解决，受控题则集中在少数配送日期或状态编辑。原评分对注入定位和统计对账很有用，但很少测试跨表佐证、竞争解释、事件主体和时间，两个真实冻结题也无法估计通用收益。

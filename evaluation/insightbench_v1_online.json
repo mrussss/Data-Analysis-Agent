@@ -1,0 +1,1261 @@
+{
+  "experiment_id": "insightbench-csv-v1",
+  "split": "public_development",
+  "upstream_revision": "33c27c1282cb7ed73267d36fb84e27b6ea8aac2b",
+  "asset_manifest_sha256": "c7318b383e12577af1f50ea0683c1f1bad3051c658f69a782a1fd58696dc8ff2",
+  "analysis_source_sha256": "2bcebfa539ed31f11320e672a2caf9c34988410020ac8103d3ebd5c76299ae12",
+  "duckdb_version": "1.5.6",
+  "execution": "online_model",
+  "limits": {
+    "requests": 24,
+    "tokens": 80000,
+    "actions_per_run": 3
+  },
+  "runs": [
+    {
+      "goal": "Find the discrepancy and imbalance in distribution of incidents assigned across categories",
+      "data_sha256": "7a262de8d6654f97c89775d8392cfd4e9f7fd8f028545cb874fcee3d2cd3278c",
+      "profile": {
+        "table": "source_data",
+        "rows": 500,
+        "columns": [
+          {
+            "name": "category",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          },
+          {
+            "name": "state",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 2
+          },
+          {
+            "name": "closed_at",
+            "type": "TIMESTAMP",
+            "kind": "temporal",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500,
+            "valid_time": 500
+          },
+          {
+            "name": "opened_at",
+            "type": "TIMESTAMP",
+            "kind": "temporal",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500,
+            "valid_time": 500
+          },
+          {
+            "name": "closed_by",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          },
+          {
+            "name": "number",
+            "type": "VARCHAR",
+            "kind": "text",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500
+          },
+          {
+            "name": "sys_updated_by",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 3
+          },
+          {
+            "name": "location",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          },
+          {
+            "name": "assigned_to",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          },
+          {
+            "name": "caller_id",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 4
+          },
+          {
+            "name": "sys_updated_on",
+            "type": "TIMESTAMP",
+            "kind": "temporal",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500,
+            "valid_time": 500
+          },
+          {
+            "name": "short_description",
+            "type": "VARCHAR",
+            "kind": "text",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 390
+          },
+          {
+            "name": "assignment_group",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          },
+          {
+            "name": "priority",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 4
+          }
+        ]
+      },
+      "strategy": "fixed",
+      "action_budget": 3,
+      "tool_calls": 0,
+      "evidence": [],
+      "trace": [
+        {
+          "phase": "initial",
+          "error": "truncated_output",
+          "retry": true
+        },
+        {
+          "phase": "initial",
+          "error": "invalid_json",
+          "retry": false
+        },
+        {
+          "phase": "stop",
+          "error": "invalid_json"
+        }
+      ],
+      "insights": [],
+      "assessment": {
+        "sufficient": false,
+        "answered": [],
+        "gaps": [
+          "Find the discrepancy and imbalance in distribution of incidents assigned across categories"
+        ],
+        "explanations": []
+      },
+      "stop_reason": "planner_error",
+      "error": "invalid_json",
+      "elapsed_ms": 207295.55,
+      "requested_model": "deepseek-v4.1-flash",
+      "actual_models": [
+        "deepseek-v4.1-flash"
+      ],
+      "requests": 4,
+      "token_usage": null,
+      "known_tokens": 11928,
+      "model_attempts": [
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 9636,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "length",
+          "content_chars": 13489,
+          "blank": false,
+          "completion_over_requested_limit": true,
+          "reasoning_chars": 13489,
+          "reported_effort": null,
+          "reasoning_tokens": null,
+          "content_equals_reasoning": true,
+          "prompt_tokens": 1698,
+          "completion_tokens": 6144,
+          "response_status": "truncated_output",
+          "total_tokens": 7842,
+          "latency_ms": 27754.07,
+          "retained_tokens": 0,
+          "analysis_phase": "initial"
+        },
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 9670,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "error_class": "APITimeoutError",
+          "http_status": null,
+          "transport_cause": "ReadTimeout",
+          "response_status": "timeout",
+          "retry_delay_seconds": 0.5,
+          "failure_reason": "timeout",
+          "request_body_unsent": false,
+          "total_tokens": null,
+          "latency_ms": 85078.91,
+          "retained_tokens": 9670,
+          "analysis_phase": "initial",
+          "correction_of": "truncated_output"
+        },
+        {
+          "attempt": 2,
+          "output_limit": 3072,
+          "token_reservation": 9670,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "error_class": "APITimeoutError",
+          "http_status": null,
+          "transport_cause": "ReadTimeout",
+          "response_status": "timeout",
+          "retry_delay_seconds": 1.0,
+          "failure_reason": "timeout",
+          "request_body_unsent": false,
+          "total_tokens": null,
+          "latency_ms": 85714.46,
+          "retained_tokens": 9670,
+          "analysis_phase": "initial",
+          "correction_of": "truncated_output"
+        },
+        {
+          "attempt": 3,
+          "output_limit": 3072,
+          "token_reservation": 9670,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "stop",
+          "content_chars": 2608,
+          "blank": false,
+          "completion_over_requested_limit": false,
+          "reasoning_chars": 2608,
+          "reported_effort": null,
+          "reasoning_tokens": 0,
+          "content_equals_reasoning": true,
+          "prompt_tokens": 1582,
+          "completion_tokens": 2504,
+          "response_status": "content",
+          "total_tokens": 4086,
+          "latency_ms": 7217.89,
+          "retained_tokens": 0,
+          "analysis_phase": "initial",
+          "correction_of": "truncated_output"
+        }
+      ],
+      "case": "flag-1",
+      "import_ms": 437.25,
+      "execution": "online_model",
+      "evidence_audit": {
+        "checked_insights": 0,
+        "passed_value_checks": 0,
+        "semantic_correctness": "requires_human_review",
+        "unanswered": [
+          "Find the discrepancy and imbalance in distribution of incidents assigned across categories"
+        ],
+        "checks": []
+      },
+      "official_rouge1": 0.0,
+      "official_score_details": {
+        "case": "flag-1",
+        "strategy": "fixed",
+        "rouge1": 0.0,
+        "references": 6,
+        "prediction_count": 0,
+        "empty_prediction": true
+      }
+    },
+    {
+      "goal": "Find the discrepancy and imbalance in distribution of incidents assigned across categories",
+      "data_sha256": "7a262de8d6654f97c89775d8392cfd4e9f7fd8f028545cb874fcee3d2cd3278c",
+      "profile": {
+        "table": "source_data",
+        "rows": 500,
+        "columns": [
+          {
+            "name": "category",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          },
+          {
+            "name": "state",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 2
+          },
+          {
+            "name": "closed_at",
+            "type": "TIMESTAMP",
+            "kind": "temporal",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500,
+            "valid_time": 500
+          },
+          {
+            "name": "opened_at",
+            "type": "TIMESTAMP",
+            "kind": "temporal",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500,
+            "valid_time": 500
+          },
+          {
+            "name": "closed_by",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          },
+          {
+            "name": "number",
+            "type": "VARCHAR",
+            "kind": "text",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500
+          },
+          {
+            "name": "sys_updated_by",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 3
+          },
+          {
+            "name": "location",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          },
+          {
+            "name": "assigned_to",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          },
+          {
+            "name": "caller_id",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 4
+          },
+          {
+            "name": "sys_updated_on",
+            "type": "TIMESTAMP",
+            "kind": "temporal",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500,
+            "valid_time": 500
+          },
+          {
+            "name": "short_description",
+            "type": "VARCHAR",
+            "kind": "text",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 390
+          },
+          {
+            "name": "assignment_group",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          },
+          {
+            "name": "priority",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 4
+          }
+        ]
+      },
+      "strategy": "dynamic",
+      "action_budget": 3,
+      "tool_calls": 3,
+      "evidence": [
+        {
+          "id": "E1",
+          "step": {
+            "question": "How imbalanced is incident volume across categories overall?",
+            "why": "Establish the baseline category distribution and total denominator before checking conditional or timing-related discrepancies.",
+            "columns": [
+              "category"
+            ],
+            "check": "Compare incident_count, total_incidents, pct_total, and ratio_to_min_category; confirm total_incidents is 500 and whether one or more categories dominate unexpectedly.",
+            "sql": "WITH cat_counts AS (SELECT category, COUNT(*) AS incident_count FROM source_data GROUP BY category) SELECT category, incident_count, SUM(incident_count) OVER () AS total_incidents, ROUND(100.0 * incident_count / SUM(incident_count) OVER (), 2) AS pct_total, ROUND(incident_count * 1.0 / MIN(incident_count) OVER (), 2) AS ratio_to_min_category FROM cat_counts ORDER BY incident_count DESC, category;"
+          },
+          "status": "success",
+          "columns": [
+            "category",
+            "incident_count",
+            "total_incidents",
+            "pct_total",
+            "ratio_to_min_category"
+          ],
+          "rows": [
+            [
+              "Hardware",
+              336,
+              500,
+              67.2,
+              10.5
+            ],
+            [
+              "Network",
+              51,
+              500,
+              10.2,
+              1.59
+            ],
+            [
+              "Software",
+              41,
+              500,
+              8.2,
+              1.28
+            ],
+            [
+              "Database",
+              40,
+              500,
+              8.0,
+              1.25
+            ],
+            [
+              "Inquiry / Help",
+              32,
+              500,
+              6.4,
+              1.0
+            ]
+          ],
+          "truncated": false,
+          "error": null,
+          "error_detail": null,
+          "elapsed_ms": 10.33
+        },
+        {
+          "id": "E2",
+          "step": {
+            "question": "Is category volume imbalance consistent within each state, or driven by state mix?",
+            "why": "State-specific denominators show whether the Hardware concentration is stable across cohorts or produced by uneven state composition.",
+            "columns": [
+              "category",
+              "state"
+            ],
+            "check": "Inspect incident_count, pct_within_state, and pct_category_in_state; verify each state's category shares sum to its state denominator and whether category ordering remains stable across states.",
+            "sql": "SELECT category, state, COUNT(*) AS incident_count, ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (PARTITION BY state), 2) AS pct_within_state, ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (PARTITION BY category), 2) AS pct_category_in_state FROM source_data GROUP BY category, state ORDER BY category, state;"
+          },
+          "status": "success",
+          "columns": [
+            "category",
+            "state",
+            "incident_count",
+            "pct_within_state",
+            "pct_category_in_state"
+          ],
+          "rows": [
+            [
+              "Database",
+              "Closed",
+              23,
+              8.88,
+              57.5
+            ],
+            [
+              "Database",
+              "Resolved",
+              17,
+              7.05,
+              42.5
+            ],
+            [
+              "Hardware",
+              "Closed",
+              169,
+              65.25,
+              50.3
+            ],
+            [
+              "Hardware",
+              "Resolved",
+              167,
+              69.29,
+              49.7
+            ],
+            [
+              "Inquiry / Help",
+              "Closed",
+              16,
+              6.18,
+              50.0
+            ],
+            [
+              "Inquiry / Help",
+              "Resolved",
+              16,
+              6.64,
+              50.0
+            ],
+            [
+              "Network",
+              "Closed",
+              28,
+              10.81,
+              54.9
+            ],
+            [
+              "Network",
+              "Resolved",
+              23,
+              9.54,
+              45.1
+            ],
+            [
+              "Software",
+              "Closed",
+              23,
+              8.88,
+              56.1
+            ],
+            [
+              "Software",
+              "Resolved",
+              18,
+              7.47,
+              43.9
+            ]
+          ],
+          "truncated": false,
+          "error": null,
+          "error_detail": null,
+          "elapsed_ms": 10.86
+        },
+        {
+          "id": "E3",
+          "step": {
+            "question": "Do category volumes differ by assignment group and assignee?",
+            "why": "The goal concerns assigned incident distribution; assignment group or assignee routing could create or explain category concentration beyond state mix.",
+            "columns": [
+              "category",
+              "assignment_group",
+              "assigned_to"
+            ],
+            "check": "Compare incident_count, pct_within_group_assignee, and pct_category_in_group_assignee; look for groups or assignees with disproportionate Hardware or other category loads.",
+            "sql": "SELECT category, assignment_group, assigned_to, COUNT(*) AS incident_count, ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (PARTITION BY assignment_group, assigned_to), 2) AS pct_within_group_assignee, ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (PARTITION BY category), 2) AS pct_category_in_group_assignee FROM source_data GROUP BY category, assignment_group, assigned_to ORDER BY assignment_group, assigned_to, incident_count DESC, category;"
+          },
+          "status": "success",
+          "columns": [
+            "category",
+            "assignment_group",
+            "assigned_to",
+            "incident_count",
+            "pct_within_group_assignee",
+            "pct_category_in_group_assignee"
+          ],
+          "rows": [
+            [
+              "Database",
+              "Database",
+              "Beth Anglin",
+              9,
+              100.0,
+              22.5
+            ],
+            [
+              "Database",
+              "Database",
+              "Charlie Whitherspoon",
+              8,
+              100.0,
+              20.0
+            ],
+            [
+              "Database",
+              "Database",
+              "Fred Luddy",
+              5,
+              100.0,
+              12.5
+            ],
+            [
+              "Database",
+              "Database",
+              "Howard Johnson",
+              9,
+              90.0,
+              22.5
+            ],
+            [
+              "Inquiry / Help",
+              "Database",
+              "Howard Johnson",
+              1,
+              10.0,
+              3.13
+            ],
+            [
+              "Database",
+              "Database",
+              "Luke Wilson",
+              9,
+              100.0,
+              22.5
+            ],
+            [
+              "Hardware",
+              "Hardware",
+              "Beth Anglin",
+              69,
+              100.0,
+              20.54
+            ],
+            [
+              "Hardware",
+              "Hardware",
+              "Charlie Whitherspoon",
+              81,
+              97.59,
+              24.11
+            ],
+            [
+              "Inquiry / Help",
+              "Hardware",
+              "Charlie Whitherspoon",
+              2,
+              2.41,
+              6.25
+            ],
+            [
+              "Hardware",
+              "Hardware",
+              "Fred Luddy",
+              66,
+              98.51,
+              19.64
+            ],
+            [
+              "Inquiry / Help",
+              "Hardware",
+              "Fred Luddy",
+              1,
+              1.49,
+              3.13
+            ],
+            [
+              "Hardware",
+              "Hardware",
+              "Howard Johnson",
+              62,
+              100.0,
+              18.45
+            ],
+            [
+              "Hardware",
+              "Hardware",
+              "Luke Wilson",
+              58,
+              96.67,
+              17.26
+            ],
+            [
+              "Inquiry / Help",
+              "Hardware",
+              "Luke Wilson",
+              2,
+              3.33,
+              6.25
+            ],
+            [
+              "Network",
+              "Network",
+              "Beth Anglin",
+              9,
+              100.0,
+              17.65
+            ],
+            [
+              "Network",
+              "Network",
+              "Charlie Whitherspoon",
+              11,
+              100.0,
+              21.57
+            ],
+            [
+              "Network",
+              "Network",
+              "Fred Luddy",
+              6,
+              100.0,
+              11.76
+            ],
+            [
+              "Network",
+              "Network",
+              "Howard Johnson",
+              14,
+              100.0,
+              27.45
+            ],
+            [
+              "Network",
+              "Network",
+              "Luke Wilson",
+              11,
+              100.0,
+              21.57
+            ],
+            [
+              "Inquiry / Help",
+              "Service Desk",
+              "Beth Anglin",
+              5,
+              100.0,
+              15.63
+            ],
+            [
+              "Inquiry / Help",
+              "Service Desk",
+              "Charlie Whitherspoon",
+              7,
+              100.0,
+              21.88
+            ],
+            [
+              "Inquiry / Help",
+              "Service Desk",
+              "Fred Luddy",
+              5,
+              100.0,
+              15.63
+            ],
+            [
+              "Inquiry / Help",
+              "Service Desk",
+              "Howard Johnson",
+              3,
+              100.0,
+              9.38
+            ],
+            [
+              "Inquiry / Help",
+              "Service Desk",
+              "Luke Wilson",
+              5,
+              100.0,
+              15.63
+            ]
+          ],
+          "truncated": true,
+          "error": null,
+          "error_detail": null,
+          "elapsed_ms": 11.49
+        }
+      ],
+      "trace": [
+        {
+          "phase": "initial",
+          "error": "truncated_output",
+          "retry": true
+        },
+        {
+          "phase": "initial",
+          "plan": [
+            {
+              "question": "How imbalanced is incident volume across categories overall?",
+              "why": "Establish the baseline category distribution and total denominator before checking conditional or timing-related discrepancies.",
+              "columns": [
+                "category"
+              ],
+              "check": "Compare incident_count, total_incidents, pct_total, and ratio_to_min_category; confirm total_incidents is 500 and whether one or more categories dominate unexpectedly.",
+              "sql": "WITH cat_counts AS (SELECT category, COUNT(*) AS incident_count FROM source_data GROUP BY category) SELECT category, incident_count, SUM(incident_count) OVER () AS total_incidents, ROUND(100.0 * incident_count / SUM(incident_count) OVER (), 2) AS pct_total, ROUND(incident_count * 1.0 / MIN(incident_count) OVER (), 2) AS ratio_to_min_category FROM cat_counts ORDER BY incident_count DESC, category;"
+            },
+            {
+              "question": "Is category volume imbalance consistent within each state, or driven by state mix?",
+              "why": "State-specific denominators can reveal whether the overall category imbalance is stable or caused by cohort composition.",
+              "columns": [
+                "category",
+                "state"
+              ],
+              "check": "Inspect incident_count, pct_within_state, and pct_category_in_state; verify each state's category shares sum to its state denominator and whether category ordering remains stable across states.",
+              "sql": "SELECT category, state, COUNT(*) AS incident_count, ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (PARTITION BY state), 2) AS pct_within_state, ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (PARTITION BY category), 2) AS pct_category_in_state FROM source_data GROUP BY category, state ORDER BY category, state;"
+            },
+            {
+              "question": "Does category imbalance coincide with priority mix and resolution timing differences?",
+              "why": "Priority mix and open duration can change whether category load reflects operational imbalance or different handling characteristics.",
+              "columns": [
+                "category",
+                "priority",
+                "closed_at",
+                "opened_at"
+              ],
+              "check": "Review incident_count, pct_priority_within_category, and avg_open_hours by category and priority; watch for extreme priorities, negative durations, or zero-duration cases that could distort timing comparisons.",
+              "sql": "WITH cat_priority AS (SELECT category, priority, COUNT(*) AS incident_count, AVG(EXTRACT(EPOCH FROM (closed_at - opened_at)) / 3600.0) AS avg_open_hours FROM source_data GROUP BY category, priority) SELECT category, priority, incident_count, ROUND(100.0 * incident_count / SUM(incident_count) OVER (PARTITION BY category), 2) AS pct_priority_within_category, ROUND(avg_open_hours, 2) AS avg_open_hours FROM cat_priority ORDER BY category, incident_count DESC, priority;"
+            }
+          ]
+        },
+        {
+          "phase": "execute",
+          "evidence_id": "E1",
+          "error": null
+        },
+        {
+          "phase": "review",
+          "through": "E1",
+          "before": {
+            "sufficient": false,
+            "answered": [],
+            "gaps": [
+              "Find the discrepancy and imbalance in distribution of incidents assigned across categories"
+            ],
+            "explanations": []
+          },
+          "after": {
+            "sufficient": false,
+            "answered": [
+              {
+                "question": "How imbalanced is incident volume across categories overall?",
+                "finding": "Incident volume is highly concentrated: Hardware accounts for 336 of 500 incidents (67.2%), versus Network 51 (10.2%), Software 41 (8.2%), Database 40 (8.0%) and Inquiry / Help 32 (6.4%), a 10.5x ratio to the smallest category.",
+                "evidence": [
+                  "E1"
+                ]
+              }
+            ],
+            "gaps": [
+              "Is the Hardware concentration consistent within each state, or an artifact of state mix?",
+              "Do category volumes differ by assignment group and assignee?",
+              "Does the imbalance coincide with priority mix or resolution time?"
+            ],
+            "explanations": [
+              {
+                "explanation": "Only the marginal category distribution is observed; no stratification by state, assignment group, or priority has been run, so the concentration cannot yet be attributed to routing, triage, or reporting practice.",
+                "evidence": [
+                  "E1"
+                ]
+              }
+            ]
+          },
+          "next_step": {
+            "question": "Is category volume imbalance consistent within each state, or driven by state mix?",
+            "why": "State-specific denominators show whether the Hardware concentration is stable across cohorts or produced by uneven state composition.",
+            "columns": [
+              "category",
+              "state"
+            ],
+            "check": "Inspect incident_count, pct_within_state, and pct_category_in_state; verify each state's category shares sum to its state denominator and whether category ordering remains stable across states.",
+            "sql": "SELECT category, state, COUNT(*) AS incident_count, ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (PARTITION BY state), 2) AS pct_within_state, ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (PARTITION BY category), 2) AS pct_category_in_state FROM source_data GROUP BY category, state ORDER BY category, state;"
+          }
+        },
+        {
+          "phase": "execute",
+          "evidence_id": "E2",
+          "error": null
+        },
+        {
+          "phase": "review",
+          "through": "E2",
+          "before": {
+            "sufficient": false,
+            "answered": [
+              {
+                "question": "How imbalanced is incident volume across categories overall?",
+                "finding": "Incident volume is highly concentrated: Hardware accounts for 336 of 500 incidents (67.2%), versus Network 51 (10.2%), Software 41 (8.2%), Database 40 (8.0%) and Inquiry / Help 32 (6.4%), a 10.5x ratio to the smallest category.",
+                "evidence": [
+                  "E1"
+                ]
+              }
+            ],
+            "gaps": [
+              "Is the Hardware concentration consistent within each state, or an artifact of state mix?",
+              "Do category volumes differ by assignment group and assignee?",
+              "Does the imbalance coincide with priority mix or resolution time?"
+            ],
+            "explanations": [
+              {
+                "explanation": "Only the marginal category distribution is observed; no stratification by state, assignment group, or priority has been run, so the concentration cannot yet be attributed to routing, triage, or reporting practice.",
+                "evidence": [
+                  "E1"
+                ]
+              }
+            ]
+          },
+          "after": {
+            "sufficient": false,
+            "answered": [
+              {
+                "question": "How imbalanced is incident volume across categories overall?",
+                "finding": "Hardware has 336 of 500 incidents (67.2%), versus Network 51 (10.2%), Software 41 (8.2%), Database 40 (8.0%), and Inquiry / Help 32 (6.4%); the largest-to-smallest ratio is 10.5x.",
+                "evidence": [
+                  "E1"
+                ]
+              },
+              {
+                "question": "Is the category imbalance consistent across incident state?",
+                "finding": "Hardware accounts for 65.25% of Closed and 69.29% of Resolved incidents, so the concentration is not due to state mix; category ordering is broadly stable across states.",
+                "evidence": [
+                  "E2"
+                ]
+              }
+            ],
+            "gaps": [
+              "Do category volumes differ by assignment group or assignee?",
+              "Does category concentration track priority mix or resolution time?",
+              "Are category shares stable across location, caller, or closure operator?"
+            ],
+            "explanations": [
+              {
+                "explanation": "The observed imbalance is a category distribution; state stratification rules out state mix as the sole explanation, but routing/assignment or priority/timing alternatives remain untested.",
+                "evidence": [
+                  "E1",
+                  "E2"
+                ]
+              },
+              {
+                "explanation": "The data show descriptive imbalance only; no causal mechanism for Hardware concentration can be inferred from these summaries.",
+                "evidence": [
+                  "E1",
+                  "E2"
+                ]
+              }
+            ]
+          },
+          "next_step": {
+            "question": "Do category volumes differ by assignment group and assignee?",
+            "why": "The goal concerns assigned incident distribution; assignment group or assignee routing could create or explain category concentration beyond state mix.",
+            "columns": [
+              "category",
+              "assignment_group",
+              "assigned_to"
+            ],
+            "check": "Compare incident_count, pct_within_group_assignee, and pct_category_in_group_assignee; look for groups or assignees with disproportionate Hardware or other category loads.",
+            "sql": "SELECT category, assignment_group, assigned_to, COUNT(*) AS incident_count, ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (PARTITION BY assignment_group, assigned_to), 2) AS pct_within_group_assignee, ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (PARTITION BY category), 2) AS pct_category_in_group_assignee FROM source_data GROUP BY category, assignment_group, assigned_to ORDER BY assignment_group, assigned_to, incident_count DESC, category;"
+          }
+        },
+        {
+          "phase": "execute",
+          "evidence_id": "E3",
+          "error": null
+        },
+        {
+          "phase": "stop",
+          "error": "budget_limit"
+        }
+      ],
+      "insights": [],
+      "assessment": {
+        "sufficient": false,
+        "answered": [
+          {
+            "question": "How imbalanced is incident volume across categories overall?",
+            "finding": "Hardware has 336 of 500 incidents (67.2%), versus Network 51 (10.2%), Software 41 (8.2%), Database 40 (8.0%), and Inquiry / Help 32 (6.4%); the largest-to-smallest ratio is 10.5x.",
+            "evidence": [
+              "E1"
+            ]
+          },
+          {
+            "question": "Is the category imbalance consistent across incident state?",
+            "finding": "Hardware accounts for 65.25% of Closed and 69.29% of Resolved incidents, so the concentration is not due to state mix; category ordering is broadly stable across states.",
+            "evidence": [
+              "E2"
+            ]
+          }
+        ],
+        "gaps": [
+          "Do category volumes differ by assignment group or assignee?",
+          "Does category concentration track priority mix or resolution time?",
+          "Are category shares stable across location, caller, or closure operator?"
+        ],
+        "explanations": [
+          {
+            "explanation": "The observed imbalance is a category distribution; state stratification rules out state mix as the sole explanation, but routing/assignment or priority/timing alternatives remain untested.",
+            "evidence": [
+              "E1",
+              "E2"
+            ]
+          },
+          {
+            "explanation": "The data show descriptive imbalance only; no causal mechanism for Hardware concentration can be inferred from these summaries.",
+            "evidence": [
+              "E1",
+              "E2"
+            ]
+          }
+        ]
+      },
+      "stop_reason": "planner_error",
+      "error": "budget_limit",
+      "elapsed_ms": 234926.05,
+      "requested_model": "deepseek-v4.1-flash",
+      "actual_models": [
+        "deepseek-v4.1-flash"
+      ],
+      "requests": 5,
+      "token_usage": null,
+      "known_tokens": 24856,
+      "model_attempts": [
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 9636,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "error_class": "APITimeoutError",
+          "http_status": null,
+          "transport_cause": "ReadTimeout",
+          "response_status": "timeout",
+          "retry_delay_seconds": 0.5,
+          "failure_reason": "timeout",
+          "request_body_unsent": false,
+          "total_tokens": null,
+          "latency_ms": 85061.08,
+          "retained_tokens": 9636,
+          "analysis_phase": "initial"
+        },
+        {
+          "attempt": 2,
+          "output_limit": 3072,
+          "token_reservation": 9636,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "length",
+          "content_chars": 13171,
+          "blank": false,
+          "completion_over_requested_limit": true,
+          "reasoning_chars": 13171,
+          "reported_effort": null,
+          "reasoning_tokens": null,
+          "content_equals_reasoning": true,
+          "prompt_tokens": 1698,
+          "completion_tokens": 6144,
+          "response_status": "truncated_output",
+          "total_tokens": 7842,
+          "latency_ms": 53569.66,
+          "retained_tokens": 0,
+          "analysis_phase": "initial"
+        },
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 9670,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "stop",
+          "content_chars": 2770,
+          "blank": false,
+          "completion_over_requested_limit": false,
+          "reasoning_chars": 0,
+          "reported_effort": null,
+          "reasoning_tokens": 2389,
+          "content_equals_reasoning": false,
+          "prompt_tokens": 837,
+          "completion_tokens": 3038,
+          "response_status": "content",
+          "total_tokens": 3875,
+          "latency_ms": 19741.22,
+          "retained_tokens": 0,
+          "analysis_phase": "initial",
+          "correction_of": "truncated_output"
+        },
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 13773,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "stop",
+          "content_chars": 1696,
+          "blank": false,
+          "completion_over_requested_limit": false,
+          "reasoning_chars": 3295,
+          "reported_effort": null,
+          "reasoning_tokens": null,
+          "content_equals_reasoning": false,
+          "prompt_tokens": 1870,
+          "completion_tokens": 1155,
+          "response_status": "content",
+          "total_tokens": 3025,
+          "latency_ms": 31646.01,
+          "retained_tokens": 0,
+          "analysis_phase": "review"
+        },
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 15160,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "stop",
+          "content_chars": 2160,
+          "blank": false,
+          "completion_over_requested_limit": true,
+          "reasoning_chars": 10844,
+          "reported_effort": null,
+          "reasoning_tokens": null,
+          "content_equals_reasoning": false,
+          "prompt_tokens": 4531,
+          "completion_tokens": 5583,
+          "response_status": "content",
+          "total_tokens": 10114,
+          "latency_ms": 44172.83,
+          "retained_tokens": 0,
+          "analysis_phase": "review"
+        }
+      ],
+      "case": "flag-1",
+      "import_ms": 437.25,
+      "execution": "online_model",
+      "evidence_audit": {
+        "checked_insights": 0,
+        "passed_value_checks": 0,
+        "semantic_correctness": "requires_human_review",
+        "unanswered": [
+          "Do category volumes differ by assignment group or assignee?",
+          "Does category concentration track priority mix or resolution time?",
+          "Are category shares stable across location, caller, or closure operator?"
+        ],
+        "checks": []
+      },
+      "official_rouge1": 0.0,
+      "official_score_details": {
+        "case": "flag-1",
+        "strategy": "dynamic",
+        "rouge1": 0.0,
+        "references": 6,
+        "prediction_count": 0,
+        "empty_prediction": true
+      }
+    }
+  ],
+  "budget_journal_id": "1fb0b86213944e82bbbf70b0712cffa8",
+  "online_usage": {
+    "requests": 9,
+    "tokens": 36784,
+    "unknown_usage_requests": 3,
+    "reserved_unknown_tokens": 28976,
+    "unbounded_usage": false
+  },
+  "skipped": [
+    {
+      "case": "flag-2",
+      "strategy": "dynamic",
+      "reason": "model_budget_exhausted"
+    },
+    {
+      "case": "flag-2",
+      "strategy": "fixed",
+      "reason": "model_budget_exhausted"
+    }
+  ],
+  "scoring": {
+    "implementation": "insightbench_upstream_rouge1_compat",
+    "upstream_revision": "33c27c1282cb7ed73267d36fb84e27b6ea8aac2b",
+    "entry_point": "insightbench.benchmarks.evaluate_insights",
+    "rouge_score_version": "0.1.2",
+    "numpy_version": "2.2.6",
+    "compatibility": "Pinned upstream functions with local singleton HF ROUGE backend; empty predicts score zero."
+  },
+  "comparisons": {
+    "flag-1": {
+      "same_actual_model": true,
+      "dynamic_only_statements": []
+    }
+  }
+}

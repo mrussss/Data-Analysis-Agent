@@ -1,0 +1,3838 @@
+{
+  "experiment_id": "mode-b-verified-dev-v1",
+  "historical_result": "business_deep_online_dev.json",
+  "historical_result_sha256": "512727d8c20c0c49b36e048d66971671183e2b8e1b2e13f619c2ea7008e7f71f",
+  "strategy_sha256": "965adec1465fffa2158c31b06180a6039dad2453b15de1119dbe3a5aa98a105b",
+  "budget": 5,
+  "limits": {
+    "requests": 24,
+    "tokens": 80000
+  },
+  "model": "deepseek-v4.1-flash",
+  "execution": "online",
+  "low_probe": {
+    "outcome": "accepted",
+    "attempts": [
+      {
+        "attempt": 1,
+        "output_limit": 1024,
+        "token_reservation": 3116,
+        "route": "vx_flash",
+        "model": "deepseek-v4.1-flash",
+        "key_slot": "1",
+        "switch_reason": null,
+        "response_format": "json_object",
+        "reasoning_effort": "low",
+        "thinking_enabled_requested": true,
+        "timeout_seconds": 85,
+        "reported_model": "deepseek-v4.1-flash",
+        "finish_reason": "stop",
+        "content_chars": 11,
+        "blank": false,
+        "completion_over_requested_limit": false,
+        "reasoning_chars": 62,
+        "reported_effort": null,
+        "reasoning_tokens": null,
+        "content_equals_reasoning": false,
+        "prompt_tokens": 82,
+        "completion_tokens": 44,
+        "response_status": "content",
+        "total_tokens": 126,
+        "latency_ms": 11905.72,
+        "retained_tokens": 0
+      }
+    ],
+    "reported_effort": null,
+    "thinking_observed": true,
+    "verification": "accepted_effective_effort_unverified"
+  },
+  "online_usage": {
+    "requests": 10,
+    "tokens": 45411,
+    "unknown_usage_requests": 2,
+    "reserved_unknown_tokens": 24798,
+    "unbounded_usage": false
+  },
+  "skipped": [],
+  "runs": [
+    {
+      "case": "deep_dev_01",
+      "type": "A",
+      "arm": "llm_adaptive",
+      "correct": true,
+      "statistical_localization": true,
+      "mechanism_identified": null,
+      "event_retrieval": null,
+      "event_matching": null,
+      "competing_evidence": true,
+      "correct_non_attribution": null,
+      "wrong_attribution": false,
+      "unsupported_attribution": false,
+      "completed": true,
+      "supported_claims": 13,
+      "claims": 13,
+      "required_found": 4,
+      "required_total": 4,
+      "missing_findings": [],
+      "unsupported_claims": [],
+      "failure": null,
+      "rule_path_changes": 0,
+      "refutations": 0,
+      "changes_after_refutation": 0,
+      "evidence_complete": true,
+      "judgment_correct": true,
+      "gold_verdict_match": true,
+      "expected_verdict_from_observed": "association",
+      "missing_evidence": [],
+      "decisive_action": 5,
+      "extra_actions_after_decisive": 0,
+      "counterevidence_found": true,
+      "execution": "online_model",
+      "latency_ms": 71133.32,
+      "requests": 5,
+      "tokens": 14308,
+      "cost_usd": null,
+      "actions": 5,
+      "sql_calls": 5,
+      "event_calls": 0,
+      "actual_models": [
+        "deepseek-v4.1-flash"
+      ],
+      "response_diagnostics": [
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 11535,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "stop",
+          "content_chars": 129,
+          "blank": false,
+          "completion_over_requested_limit": false,
+          "reasoning_chars": 1202,
+          "reported_effort": null,
+          "reasoning_tokens": null,
+          "content_equals_reasoning": false,
+          "prompt_tokens": 2246,
+          "completion_tokens": 588,
+          "response_status": "json",
+          "total_tokens": 2834,
+          "latency_ms": 23904.35,
+          "retained_tokens": 0
+        },
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 12157,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "stop",
+          "content_chars": 238,
+          "blank": false,
+          "completion_over_requested_limit": false,
+          "reasoning_chars": 0,
+          "reported_effort": null,
+          "reasoning_tokens": 545,
+          "content_equals_reasoning": false,
+          "prompt_tokens": 1365,
+          "completion_tokens": 605,
+          "response_status": "json",
+          "total_tokens": 1970,
+          "latency_ms": 7795.25,
+          "retained_tokens": 0
+        },
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 12574,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "stop",
+          "content_chars": 240,
+          "blank": false,
+          "completion_over_requested_limit": false,
+          "reasoning_chars": 4587,
+          "reported_effort": null,
+          "reasoning_tokens": null,
+          "content_equals_reasoning": false,
+          "prompt_tokens": 1515,
+          "completion_tokens": 1115,
+          "response_status": "json",
+          "total_tokens": 2630,
+          "latency_ms": 12720.51,
+          "retained_tokens": 0
+        },
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 12765,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "stop",
+          "content_chars": 237,
+          "blank": false,
+          "completion_over_requested_limit": false,
+          "reasoning_chars": 1257,
+          "reported_effort": null,
+          "reasoning_tokens": null,
+          "content_equals_reasoning": false,
+          "prompt_tokens": 3133,
+          "completion_tokens": 655,
+          "response_status": "json",
+          "total_tokens": 3788,
+          "latency_ms": 9272.69,
+          "retained_tokens": 0
+        },
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 9088,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "stop",
+          "content_chars": 779,
+          "blank": false,
+          "completion_over_requested_limit": false,
+          "reasoning_chars": 3374,
+          "reported_effort": null,
+          "reasoning_tokens": null,
+          "content_equals_reasoning": false,
+          "prompt_tokens": 1078,
+          "completion_tokens": 2008,
+          "response_status": "json",
+          "total_tokens": 3086,
+          "latency_ms": 17338.02,
+          "retained_tokens": 0
+        }
+      ],
+      "details": {
+        "goal": {
+          "question": "Clover Pier sold fewer units in the latest fortnight. Investigate where the decline is concentrated, weigh the most relevant explanations, and report what the available evidence can establish.",
+          "domain": "retail",
+          "before": [
+            "2025-06-01",
+            "2025-06-15"
+          ],
+          "current": [
+            "2025-06-15",
+            "2025-06-29"
+          ],
+          "entity": "Clover Pier",
+          "metric": "units",
+          "dimension": null
+        },
+        "available_tools": [
+          "events",
+          "timeline",
+          "scope",
+          "stock",
+          "stock_core",
+          "stock_plus",
+          "pricing",
+          "access",
+          "peer",
+          "complaints",
+          "service",
+          "shelf_core_north",
+          "shelf_core_south",
+          "shelf_plus_north",
+          "shelf_plus_south",
+          "access_core_north",
+          "access_core_south",
+          "access_plus_north",
+          "access_plus_south",
+          "offer_core_north",
+          "offer_core_south",
+          "offer_plus_north",
+          "offer_plus_south"
+        ],
+        "remaining_budget": 0,
+        "evidence": [
+          {
+            "id": "E1",
+            "action": [
+              "headline"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Clover Pier') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, SUM(units) AS units FROM panel GROUP BY 1 ORDER BY 1",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "units"
+            ],
+            "rows": [
+              [
+                0,
+                2800
+              ],
+              [
+                1,
+                2436
+              ]
+            ],
+            "facts": [
+              "headline:units=down"
+            ]
+          },
+          {
+            "id": "E2",
+            "action": [
+              "scope"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Clover Pier') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, 'sku' AS axis, sku AS key, SUM(units) AS units, SUM(complaints) AS complaints\n            FROM panel GROUP BY 1, 2, 3 UNION ALL\n            SELECT period, 'region', region, SUM(units), SUM(complaints) FROM panel GROUP BY 1, 2, 3 UNION ALL SELECT period, 'cell', sku || '_' || region, SUM(units), SUM(complaints)\n                FROM panel GROUP BY 1, 2, 3 ORDER BY 1, 2, 3",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "axis",
+              "key",
+              "units",
+              "complaints"
+            ],
+            "rows": [
+              [
+                0,
+                "cell",
+                "core_north",
+                700,
+                14
+              ],
+              [
+                0,
+                "cell",
+                "core_south",
+                700,
+                14
+              ],
+              [
+                0,
+                "cell",
+                "plus_north",
+                700,
+                14
+              ],
+              [
+                0,
+                "cell",
+                "plus_south",
+                700,
+                14
+              ],
+              [
+                0,
+                "region",
+                "north",
+                1400,
+                28
+              ],
+              [
+                0,
+                "region",
+                "south",
+                1400,
+                28
+              ],
+              [
+                0,
+                "sku",
+                "core",
+                1400,
+                28
+              ],
+              [
+                0,
+                "sku",
+                "plus",
+                1400,
+                28
+              ],
+              [
+                1,
+                "cell",
+                "core_north",
+                700,
+                14
+              ],
+              [
+                1,
+                "cell",
+                "core_south",
+                336,
+                14
+              ],
+              [
+                1,
+                "cell",
+                "plus_north",
+                700,
+                14
+              ],
+              [
+                1,
+                "cell",
+                "plus_south",
+                700,
+                14
+              ],
+              [
+                1,
+                "region",
+                "north",
+                1400,
+                28
+              ],
+              [
+                1,
+                "region",
+                "south",
+                1036,
+                28
+              ],
+              [
+                1,
+                "sku",
+                "core",
+                1036,
+                28
+              ],
+              [
+                1,
+                "sku",
+                "plus",
+                1400,
+                28
+              ]
+            ],
+            "facts": [
+              "scope:sku=core",
+              "scope:region=south",
+              "scope:cell=core_south"
+            ]
+          },
+          {
+            "id": "E3",
+            "action": [
+              "shelf_core_south"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Clover Pier' AND sku = 'core' AND region = 'south') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, CASE WHEN COUNT(available) = COUNT(*) THEN AVG(available) END AS availability, COUNT(available) AS recorded,\n            COUNT(*) AS panel_rows, SUM(units) AS units, SUM(CASE WHEN switched THEN units END) AS switched_units, COUNT(*) FILTER (WHERE available = 0) AS unavailable_days, SUM(units) FILTER (WHERE available = 0) AS unavailable_units\n            FROM (SELECT *, MIN(available) FILTER (WHERE period = 0) OVER (PARTITION BY sku,region) = 1\n              AND MAX(available) FILTER (WHERE period = 1) OVER (PARTITION BY sku,region) = 0 AS switched\n              FROM panel) GROUP BY 1 ORDER BY 1",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "availability",
+              "recorded",
+              "panel_rows",
+              "units",
+              "switched_units",
+              "unavailable_days",
+              "unavailable_units"
+            ],
+            "rows": [
+              [
+                0,
+                1.0,
+                14,
+                14,
+                700,
+                null,
+                0,
+                null
+              ],
+              [
+                1,
+                1.0,
+                14,
+                14,
+                336,
+                null,
+                0,
+                null
+              ]
+            ],
+            "facts": [
+              "shelf_core_south:availability=stable",
+              "shelf_core_south:recorded=stable",
+              "shelf_core_south:panel_rows=stable",
+              "shelf_core_south:units=down",
+              "shelf_core_south:switched_units=missing",
+              "shelf_core_south:unavailable_days=stable",
+              "shelf_core_south:unavailable_units=missing"
+            ]
+          },
+          {
+            "id": "E4",
+            "action": [
+              "access_core_south"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Clover Pier' AND sku = 'core' AND region = 'south') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, CASE WHEN COUNT(visits) = COUNT(*) THEN SUM(visits) END AS visits, CASE WHEN COUNT(visits) = COUNT(*) THEN SUM(units)::DOUBLE / NULLIF(SUM(visits), 0) END AS conversion, COUNT(visits) AS recorded FROM panel GROUP BY 1 ORDER BY 1",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "visits",
+              "conversion",
+              "recorded"
+            ],
+            "rows": [
+              [
+                0,
+                1400,
+                0.5,
+                14
+              ],
+              [
+                1,
+                1400,
+                0.24,
+                14
+              ]
+            ],
+            "facts": [
+              "access_core_south:visits=stable",
+              "access_core_south:conversion=down",
+              "access_core_south:recorded=stable"
+            ]
+          },
+          {
+            "id": "E5",
+            "action": [
+              "offer_core_south"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Clover Pier' AND sku = 'core' AND region = 'south') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, SUM(price * units)::DOUBLE / NULLIF(SUM(units), 0) AS price, SUM(promo * units)::DOUBLE / NULLIF(SUM(units), 0) AS promo_rate FROM panel GROUP BY 1 ORDER BY 1",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "price",
+              "promo_rate"
+            ],
+            "rows": [
+              [
+                0,
+                100.0,
+                0.0
+              ],
+              [
+                1,
+                130.0,
+                0.0
+              ]
+            ],
+            "facts": [
+              "offer_core_south:price=up",
+              "offer_core_south:promo_rate=stable"
+            ]
+          }
+        ],
+        "hypotheses": [
+          {
+            "action": [
+              "shelf_core_south"
+            ],
+            "segment": [],
+            "effect": "core_south:availability=down",
+            "state": "untested",
+            "priority": 0,
+            "contribution": null,
+            "evidence": [
+              "E3"
+            ],
+            "cohort": [],
+            "id": null,
+            "direction": null
+          },
+          {
+            "action": [
+              "access_core_south"
+            ],
+            "segment": [],
+            "effect": "access_core_south:units_per_visit=down",
+            "state": "untested",
+            "priority": 0,
+            "contribution": null,
+            "evidence": [
+              "E4"
+            ],
+            "cohort": [],
+            "id": null,
+            "direction": null
+          },
+          {
+            "action": [
+              "offer_core_south"
+            ],
+            "segment": [],
+            "effect": "offer_core_south:promotion_share=down",
+            "state": "untested",
+            "priority": 0,
+            "contribution": null,
+            "evidence": [
+              "E5"
+            ],
+            "cohort": [],
+            "id": null,
+            "direction": null
+          }
+        ],
+        "trace": [
+          {
+            "action": "headline",
+            "evidence": "E1",
+            "decision_source": "shared_headline"
+          },
+          {
+            "action": "scope",
+            "evidence": "E2",
+            "expect": null,
+            "next_action": null,
+            "decision_source": "adaptive_model",
+            "visible_evidence": [
+              "E1"
+            ],
+            "question": "Identify which SKU-region cells account for most of the unit decline before testing explanations.",
+            "evidence_ids": [],
+            "raw_action": "{\"action\":\"scope\"}",
+            "correction_of": null,
+            "prior_plan": null,
+            "refutation": null,
+            "changed_after_refutation": false
+          },
+          {
+            "action": "shelf_core_south",
+            "evidence": "E3",
+            "expect": "core_south:availability=down",
+            "next_action": "access_core_south",
+            "decision_source": "adaptive_model",
+            "visible_evidence": [
+              "E1",
+              "E2"
+            ],
+            "question": "E2 shows the decline is concentrated in core_south (700→336) while other cells are flat; check whether availability explains it.",
+            "evidence_ids": [],
+            "raw_action": "{\"action\":\"shelf_core_south\",\"next\":\"access_core_south\"}",
+            "correction_of": null,
+            "prior_plan": null,
+            "refutation": null,
+            "changed_after_refutation": false
+          },
+          {
+            "action": "access_core_south",
+            "evidence": "E4",
+            "expect": "access_core_south:units_per_visit=down",
+            "next_action": "offer_core_south",
+            "decision_source": "adaptive_model",
+            "visible_evidence": [
+              "E1",
+              "E2",
+              "E3"
+            ],
+            "question": "Core South accounts for the entire unit decline while stock availability is stable, so test traffic and conversion next.",
+            "evidence_ids": [],
+            "raw_action": "{\"action\":\"access_core_south\",\"next\":\"offer_core_south\"}",
+            "correction_of": null,
+            "prior_plan": "access_core_south",
+            "refutation": null,
+            "changed_after_refutation": false
+          },
+          {
+            "action": "offer_core_south",
+            "evidence": "E5",
+            "expect": "offer_core_south:promotion_share=down",
+            "next_action": null,
+            "decision_source": "adaptive_model",
+            "visible_evidence": [
+              "E1",
+              "E2",
+              "E3",
+              "E4"
+            ],
+            "question": "Core_south accounts for the decline and conversion fell while visits held stable, so check price/promotion as a likely explanation.",
+            "evidence_ids": [],
+            "raw_action": "{\"action\":\"offer_core_south\",\"next\":\"stop\"}",
+            "correction_of": null,
+            "prior_plan": "offer_core_south",
+            "refutation": null,
+            "changed_after_refutation": false
+          }
+        ],
+        "stop_reason": "budget_exhausted",
+        "model_error": null,
+        "policy": "llm_adaptive",
+        "model_hypotheses": [],
+        "verdict": "association",
+        "claims": [
+          {
+            "evidence": "E1",
+            "fact": "headline:units=down"
+          },
+          {
+            "evidence": "E2",
+            "fact": "scope:sku=core"
+          },
+          {
+            "evidence": "E2",
+            "fact": "scope:region=south"
+          },
+          {
+            "evidence": "E2",
+            "fact": "scope:cell=core_south"
+          },
+          {
+            "evidence": "E3",
+            "fact": "shelf_core_south:units=down"
+          },
+          {
+            "evidence": "E3",
+            "fact": "shelf_core_south:availability=stable"
+          },
+          {
+            "evidence": "E3",
+            "fact": "shelf_core_south:unavailable_days=stable"
+          },
+          {
+            "evidence": "E3",
+            "fact": "shelf_core_south:switched_units=missing"
+          },
+          {
+            "evidence": "E3",
+            "fact": "shelf_core_south:unavailable_units=missing"
+          },
+          {
+            "evidence": "E4",
+            "fact": "access_core_south:visits=stable"
+          },
+          {
+            "evidence": "E4",
+            "fact": "access_core_south:conversion=down"
+          },
+          {
+            "evidence": "E5",
+            "fact": "offer_core_south:price=up"
+          },
+          {
+            "evidence": "E5",
+            "fact": "offer_core_south:promo_rate=stable"
+          }
+        ]
+      },
+      "gold": {
+        "verdict": "association",
+        "findings": [
+          "headline:units=down",
+          "scope:cell=core_south",
+          "offer_core_south:price=up",
+          "access_core_south:visits=stable"
+        ],
+        "alternatives": [],
+        "counterevidence": [
+          "access_core_south:visits=stable"
+        ]
+      },
+      "historical": true,
+      "collection_coverage": {
+        "found": 4,
+        "total": 4
+      }
+    },
+    {
+      "case": "deep_dev_01",
+      "type": "A",
+      "arm": "rule_adaptive",
+      "correct": true,
+      "statistical_localization": true,
+      "mechanism_identified": null,
+      "event_retrieval": null,
+      "event_matching": null,
+      "competing_evidence": true,
+      "correct_non_attribution": null,
+      "wrong_attribution": false,
+      "unsupported_attribution": false,
+      "completed": true,
+      "supported_claims": 17,
+      "claims": 17,
+      "required_found": 4,
+      "required_total": 4,
+      "missing_findings": [],
+      "unsupported_claims": [],
+      "failure": null,
+      "rule_path_changes": 1,
+      "refutations": 0,
+      "changes_after_refutation": 0,
+      "evidence_complete": true,
+      "judgment_correct": true,
+      "gold_verdict_match": true,
+      "expected_verdict_from_observed": "association",
+      "missing_evidence": [],
+      "decisive_action": 5,
+      "extra_actions_after_decisive": 0,
+      "counterevidence_found": true,
+      "execution": "deterministic",
+      "latency_ms": 42.55,
+      "requests": 0,
+      "tokens": 0,
+      "cost_usd": 0,
+      "actions": 5,
+      "sql_calls": 4,
+      "event_calls": 1,
+      "actual_models": [],
+      "response_diagnostics": [],
+      "details": {
+        "goal": {
+          "question": "Clover Pier sold fewer units in the latest fortnight. Investigate where the decline is concentrated, weigh the most relevant explanations, and report what the available evidence can establish.",
+          "domain": "retail",
+          "before": [
+            "2025-06-01",
+            "2025-06-15"
+          ],
+          "current": [
+            "2025-06-15",
+            "2025-06-29"
+          ],
+          "entity": "Clover Pier",
+          "metric": "units",
+          "dimension": null
+        },
+        "available_tools": [
+          "events",
+          "timeline",
+          "scope",
+          "stock",
+          "stock_core",
+          "stock_plus",
+          "pricing",
+          "access",
+          "peer",
+          "complaints",
+          "service",
+          "shelf_core_north",
+          "shelf_core_south",
+          "shelf_plus_north",
+          "shelf_plus_south",
+          "access_core_north",
+          "access_core_south",
+          "access_plus_north",
+          "access_plus_south",
+          "offer_core_north",
+          "offer_core_south",
+          "offer_plus_north",
+          "offer_plus_south"
+        ],
+        "remaining_budget": 0,
+        "evidence": [
+          {
+            "id": "E1",
+            "action": [
+              "headline"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Clover Pier') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, SUM(units) AS units FROM panel GROUP BY 1 ORDER BY 1",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "units"
+            ],
+            "rows": [
+              [
+                0,
+                2800
+              ],
+              [
+                1,
+                2436
+              ]
+            ],
+            "facts": [
+              "headline:units=down"
+            ]
+          },
+          {
+            "id": "E2",
+            "action": [
+              "scope"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Clover Pier') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, 'sku' AS axis, sku AS key, SUM(units) AS units, SUM(complaints) AS complaints\n            FROM panel GROUP BY 1, 2, 3 UNION ALL\n            SELECT period, 'region', region, SUM(units), SUM(complaints) FROM panel GROUP BY 1, 2, 3 UNION ALL SELECT period, 'cell', sku || '_' || region, SUM(units), SUM(complaints)\n                FROM panel GROUP BY 1, 2, 3 ORDER BY 1, 2, 3",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "axis",
+              "key",
+              "units",
+              "complaints"
+            ],
+            "rows": [
+              [
+                0,
+                "cell",
+                "core_north",
+                700,
+                14
+              ],
+              [
+                0,
+                "cell",
+                "core_south",
+                700,
+                14
+              ],
+              [
+                0,
+                "cell",
+                "plus_north",
+                700,
+                14
+              ],
+              [
+                0,
+                "cell",
+                "plus_south",
+                700,
+                14
+              ],
+              [
+                0,
+                "region",
+                "north",
+                1400,
+                28
+              ],
+              [
+                0,
+                "region",
+                "south",
+                1400,
+                28
+              ],
+              [
+                0,
+                "sku",
+                "core",
+                1400,
+                28
+              ],
+              [
+                0,
+                "sku",
+                "plus",
+                1400,
+                28
+              ],
+              [
+                1,
+                "cell",
+                "core_north",
+                700,
+                14
+              ],
+              [
+                1,
+                "cell",
+                "core_south",
+                336,
+                14
+              ],
+              [
+                1,
+                "cell",
+                "plus_north",
+                700,
+                14
+              ],
+              [
+                1,
+                "cell",
+                "plus_south",
+                700,
+                14
+              ],
+              [
+                1,
+                "region",
+                "north",
+                1400,
+                28
+              ],
+              [
+                1,
+                "region",
+                "south",
+                1036,
+                28
+              ],
+              [
+                1,
+                "sku",
+                "core",
+                1036,
+                28
+              ],
+              [
+                1,
+                "sku",
+                "plus",
+                1400,
+                28
+              ]
+            ],
+            "facts": [
+              "scope:sku=core",
+              "scope:region=south",
+              "scope:cell=core_south"
+            ]
+          },
+          {
+            "id": "E3",
+            "action": [
+              "events"
+            ],
+            "sql": [
+              "",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "id",
+              "subject",
+              "date",
+              "scope",
+              "text",
+              "source"
+            ],
+            "rows": [
+              [
+                "circular",
+                "Clover Pier",
+                "2025-06-15",
+                "core_south",
+                "A price sheet lists revised checkout prices.",
+                "fictional benchmark archive"
+              ],
+              [
+                "update",
+                "Clover Pier Partners",
+                "2025-06-15",
+                "core",
+                "A bulletin announces delayed retailer allocation.",
+                "fictional benchmark archive"
+              ],
+              [
+                "bulletin",
+                "Clover Pier",
+                "2025-06-10",
+                "all",
+                "The retailer posted updated office opening hours.",
+                "fictional benchmark archive"
+              ],
+              [
+                "digest",
+                "Clover Pier Partners",
+                "2025-06-16",
+                "all",
+                "A regional trade roundup discusses retailers' social campaigns.",
+                "fictional benchmark archive"
+              ],
+              [
+                "calendar",
+                "Clover Pier",
+                "2025-06-07",
+                "all",
+                "A conference organizer listed a later trade fair date.",
+                "fictional benchmark archive"
+              ]
+            ],
+            "facts": []
+          },
+          {
+            "id": "E4",
+            "action": [
+              "offer_core_south"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Clover Pier' AND sku = 'core' AND region = 'south') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, SUM(price * units)::DOUBLE / NULLIF(SUM(units), 0) AS price, SUM(promo * units)::DOUBLE / NULLIF(SUM(units), 0) AS promo_rate FROM panel GROUP BY 1 ORDER BY 1",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "price",
+              "promo_rate"
+            ],
+            "rows": [
+              [
+                0,
+                100.0,
+                0.0
+              ],
+              [
+                1,
+                130.0,
+                0.0
+              ]
+            ],
+            "facts": [
+              "offer_core_south:price=up",
+              "offer_core_south:promo_rate=stable"
+            ]
+          },
+          {
+            "id": "E5",
+            "action": [
+              "access_core_south"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Clover Pier' AND sku = 'core' AND region = 'south') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, CASE WHEN COUNT(visits) = COUNT(*) THEN SUM(visits) END AS visits, CASE WHEN COUNT(visits) = COUNT(*) THEN SUM(units)::DOUBLE / NULLIF(SUM(visits), 0) END AS conversion, COUNT(visits) AS recorded FROM panel GROUP BY 1 ORDER BY 1",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "visits",
+              "conversion",
+              "recorded"
+            ],
+            "rows": [
+              [
+                0,
+                1400,
+                0.5,
+                14
+              ],
+              [
+                1,
+                1400,
+                0.24,
+                14
+              ]
+            ],
+            "facts": [
+              "access_core_south:visits=stable",
+              "access_core_south:conversion=down",
+              "access_core_south:recorded=stable"
+            ]
+          }
+        ],
+        "hypotheses": [],
+        "trace": [
+          {
+            "action": "headline",
+            "evidence": "E1",
+            "decision_source": "shared_headline"
+          },
+          {
+            "action": "scope",
+            "evidence": "E2",
+            "decision_source": "rule_adaptive",
+            "planned": "scope"
+          },
+          {
+            "action": "events",
+            "evidence": "E3",
+            "decision_source": "rule_adaptive",
+            "planned": "events"
+          },
+          {
+            "action": "offer_core_south",
+            "evidence": "E4",
+            "decision_source": "rule_adaptive",
+            "planned": "access_core_south"
+          },
+          {
+            "action": "access_core_south",
+            "evidence": "E5",
+            "decision_source": "rule_adaptive",
+            "planned": "access_core_south"
+          }
+        ],
+        "stop_reason": "budget_exhausted",
+        "model_error": null,
+        "policy": "rule_adaptive",
+        "model_hypotheses": [],
+        "verdict": "association",
+        "claims": [
+          {
+            "evidence": "E1",
+            "fact": "headline:units=down"
+          },
+          {
+            "evidence": "E2",
+            "fact": "scope:sku=core"
+          },
+          {
+            "evidence": "E2",
+            "fact": "scope:region=south"
+          },
+          {
+            "evidence": "E2",
+            "fact": "scope:cell=core_south"
+          },
+          {
+            "evidence": "E3",
+            "fact": "events:circular=matched"
+          },
+          {
+            "evidence": "E3",
+            "fact": "events:circular:scope=match"
+          },
+          {
+            "evidence": "E3",
+            "fact": "events:update=wrong_subject"
+          },
+          {
+            "evidence": "E3",
+            "fact": "events:bulletin=early"
+          },
+          {
+            "evidence": "E3",
+            "fact": "events:bulletin:scope=match"
+          },
+          {
+            "evidence": "E3",
+            "fact": "events:digest=wrong_subject"
+          },
+          {
+            "evidence": "E3",
+            "fact": "events:calendar=early"
+          },
+          {
+            "evidence": "E3",
+            "fact": "events:calendar:scope=match"
+          },
+          {
+            "evidence": "E4",
+            "fact": "offer_core_south:price=up"
+          },
+          {
+            "evidence": "E4",
+            "fact": "offer_core_south:promo_rate=stable"
+          },
+          {
+            "evidence": "E5",
+            "fact": "access_core_south:visits=stable"
+          },
+          {
+            "evidence": "E5",
+            "fact": "access_core_south:conversion=down"
+          },
+          {
+            "evidence": "E5",
+            "fact": "access_core_south:recorded=stable"
+          }
+        ]
+      },
+      "gold": {
+        "verdict": "association",
+        "findings": [
+          "headline:units=down",
+          "scope:cell=core_south",
+          "offer_core_south:price=up",
+          "access_core_south:visits=stable"
+        ],
+        "alternatives": [],
+        "counterevidence": [
+          "access_core_south:visits=stable"
+        ]
+      },
+      "collection_coverage": {
+        "found": 4,
+        "total": 4
+      }
+    },
+    {
+      "case": "deep_dev_01",
+      "arm": "llm_adaptive_verified",
+      "correct": false,
+      "statistical_localization": false,
+      "mechanism_identified": null,
+      "event_retrieval": null,
+      "event_matching": null,
+      "competing_evidence": false,
+      "correct_non_attribution": null,
+      "wrong_attribution": false,
+      "unsupported_attribution": false,
+      "completed": false,
+      "supported_claims": 0,
+      "claims": 0,
+      "required_found": 0,
+      "required_total": 4,
+      "missing_findings": [
+        "access_core_south:visits=stable",
+        "headline:units=down",
+        "offer_core_south:price=up",
+        "scope:cell=core_south"
+      ],
+      "unsupported_claims": [],
+      "failure": "truncated_output",
+      "rule_path_changes": 0,
+      "refutations": 0,
+      "changes_after_refutation": 0,
+      "evidence_complete": true,
+      "judgment_correct": null,
+      "gold_verdict_match": null,
+      "expected_verdict_from_observed": "association",
+      "missing_evidence": [],
+      "decisive_action": 5,
+      "extra_actions_after_decisive": 0,
+      "counterevidence_found": true,
+      "actions": 5,
+      "requests": 8,
+      "tokens": null,
+      "actual_models": [
+        "deepseek-v4.1-flash"
+      ],
+      "same_actual_model": true,
+      "latency_ms": 397467.24,
+      "response_diagnostics": [
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 11170,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "stop",
+          "content_chars": 646,
+          "blank": false,
+          "completion_over_requested_limit": false,
+          "reasoning_chars": 4446,
+          "reported_effort": null,
+          "reasoning_tokens": null,
+          "content_equals_reasoning": false,
+          "prompt_tokens": 1858,
+          "completion_tokens": 2196,
+          "response_status": "json",
+          "total_tokens": 4054,
+          "latency_ms": 14141.28,
+          "retained_tokens": 0,
+          "decision_phase": "assess_and_plan"
+        },
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 12399,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "error_class": "APITimeoutError",
+          "http_status": null,
+          "transport_cause": "ReadTimeout",
+          "response_status": "timeout",
+          "retry_delay_seconds": 0.5,
+          "failure_reason": "timeout",
+          "request_body_unsent": false,
+          "total_tokens": null,
+          "latency_ms": 85089.53,
+          "retained_tokens": 12399,
+          "decision_phase": "assess_and_plan"
+        },
+        {
+          "attempt": 2,
+          "output_limit": 3072,
+          "token_reservation": 12399,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "error_class": "APITimeoutError",
+          "http_status": null,
+          "transport_cause": "ReadTimeout",
+          "response_status": "timeout",
+          "retry_delay_seconds": 1.0,
+          "failure_reason": "timeout",
+          "request_body_unsent": false,
+          "total_tokens": null,
+          "latency_ms": 86493.98,
+          "retained_tokens": 12399,
+          "decision_phase": "assess_and_plan"
+        },
+        {
+          "attempt": 3,
+          "output_limit": 3072,
+          "token_reservation": 12399,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "stop",
+          "content_chars": 667,
+          "blank": false,
+          "completion_over_requested_limit": true,
+          "reasoning_chars": 8559,
+          "reported_effort": null,
+          "reasoning_tokens": null,
+          "content_equals_reasoning": false,
+          "prompt_tokens": 2622,
+          "completion_tokens": 4294,
+          "response_status": "json",
+          "total_tokens": 6916,
+          "latency_ms": 40424.13,
+          "retained_tokens": 0,
+          "decision_phase": "assess_and_plan"
+        },
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 12948,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "stop",
+          "content_chars": 638,
+          "blank": false,
+          "completion_over_requested_limit": false,
+          "reasoning_chars": 0,
+          "reported_effort": null,
+          "reasoning_tokens": 2003,
+          "content_equals_reasoning": false,
+          "prompt_tokens": 1500,
+          "completion_tokens": 2165,
+          "response_status": "json",
+          "total_tokens": 3665,
+          "latency_ms": 78738.83,
+          "retained_tokens": 0,
+          "decision_phase": "assess_and_plan"
+        },
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 13186,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "stop",
+          "content_chars": 771,
+          "blank": false,
+          "completion_over_requested_limit": true,
+          "reasoning_chars": 12182,
+          "reported_effort": null,
+          "reasoning_tokens": null,
+          "content_equals_reasoning": false,
+          "prompt_tokens": 3131,
+          "completion_tokens": 5699,
+          "response_status": "json",
+          "total_tokens": 8830,
+          "latency_ms": 27892.4,
+          "retained_tokens": 0,
+          "decision_phase": "assess_and_plan"
+        },
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 12036,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "length",
+          "content_chars": 14339,
+          "blank": false,
+          "completion_over_requested_limit": true,
+          "reasoning_chars": 14339,
+          "reported_effort": null,
+          "reasoning_tokens": null,
+          "content_equals_reasoning": true,
+          "prompt_tokens": 2720,
+          "completion_tokens": 6144,
+          "response_status": "truncated_output",
+          "total_tokens": 8864,
+          "latency_ms": 32690.32,
+          "retained_tokens": 0,
+          "decision_phase": "final_assessment"
+        },
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 12182,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "length",
+          "content_chars": 0,
+          "blank": true,
+          "completion_over_requested_limit": true,
+          "reasoning_chars": 14717,
+          "reported_effort": null,
+          "reasoning_tokens": null,
+          "content_equals_reasoning": false,
+          "prompt_tokens": 2690,
+          "completion_tokens": 6042,
+          "response_status": "truncated_output",
+          "total_tokens": 8732,
+          "latency_ms": 29987.15,
+          "retained_tokens": 0,
+          "recovery_for": "truncated_output",
+          "recovery_phase": "final_assessment",
+          "decision_phase": "final_assessment"
+        }
+      ],
+      "requests_by_phase": {
+        "assess_and_plan": 6,
+        "final_assessment": 2
+      },
+      "standalone_verifier_requests": 0,
+      "details": {
+        "goal": {
+          "question": "Clover Pier sold fewer units in the latest fortnight. Investigate where the decline is concentrated, weigh the most relevant explanations, and report what the available evidence can establish.",
+          "domain": "retail",
+          "before": [
+            "2025-06-01",
+            "2025-06-15"
+          ],
+          "current": [
+            "2025-06-15",
+            "2025-06-29"
+          ],
+          "entity": "Clover Pier",
+          "metric": "units",
+          "dimension": null
+        },
+        "available_tools": [
+          "events",
+          "timeline",
+          "scope",
+          "stock",
+          "stock_core",
+          "stock_plus",
+          "pricing",
+          "access",
+          "peer",
+          "complaints",
+          "service",
+          "shelf_core_north",
+          "shelf_core_south",
+          "shelf_plus_north",
+          "shelf_plus_south",
+          "access_core_north",
+          "access_core_south",
+          "access_plus_north",
+          "access_plus_south",
+          "offer_core_north",
+          "offer_core_south",
+          "offer_plus_north",
+          "offer_plus_south"
+        ],
+        "remaining_budget": 0,
+        "evidence": [
+          {
+            "id": "E1",
+            "action": [
+              "headline"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Clover Pier') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, SUM(units) AS units FROM panel GROUP BY 1 ORDER BY 1",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "units"
+            ],
+            "rows": [
+              [
+                0,
+                2800
+              ],
+              [
+                1,
+                2436
+              ]
+            ],
+            "facts": [
+              "headline:units=down"
+            ]
+          },
+          {
+            "id": "E2",
+            "action": [
+              "scope"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Clover Pier') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, 'sku' AS axis, sku AS key, SUM(units) AS units, SUM(complaints) AS complaints\n            FROM panel GROUP BY 1, 2, 3 UNION ALL\n            SELECT period, 'region', region, SUM(units), SUM(complaints) FROM panel GROUP BY 1, 2, 3 UNION ALL SELECT period, 'cell', sku || '_' || region, SUM(units), SUM(complaints)\n                FROM panel GROUP BY 1, 2, 3 ORDER BY 1, 2, 3",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "axis",
+              "key",
+              "units",
+              "complaints"
+            ],
+            "rows": [
+              [
+                0,
+                "cell",
+                "core_north",
+                700,
+                14
+              ],
+              [
+                0,
+                "cell",
+                "core_south",
+                700,
+                14
+              ],
+              [
+                0,
+                "cell",
+                "plus_north",
+                700,
+                14
+              ],
+              [
+                0,
+                "cell",
+                "plus_south",
+                700,
+                14
+              ],
+              [
+                0,
+                "region",
+                "north",
+                1400,
+                28
+              ],
+              [
+                0,
+                "region",
+                "south",
+                1400,
+                28
+              ],
+              [
+                0,
+                "sku",
+                "core",
+                1400,
+                28
+              ],
+              [
+                0,
+                "sku",
+                "plus",
+                1400,
+                28
+              ],
+              [
+                1,
+                "cell",
+                "core_north",
+                700,
+                14
+              ],
+              [
+                1,
+                "cell",
+                "core_south",
+                336,
+                14
+              ],
+              [
+                1,
+                "cell",
+                "plus_north",
+                700,
+                14
+              ],
+              [
+                1,
+                "cell",
+                "plus_south",
+                700,
+                14
+              ],
+              [
+                1,
+                "region",
+                "north",
+                1400,
+                28
+              ],
+              [
+                1,
+                "region",
+                "south",
+                1036,
+                28
+              ],
+              [
+                1,
+                "sku",
+                "core",
+                1036,
+                28
+              ],
+              [
+                1,
+                "sku",
+                "plus",
+                1400,
+                28
+              ]
+            ],
+            "facts": [
+              "scope:sku=core",
+              "scope:region=south",
+              "scope:cell=core_south"
+            ]
+          },
+          {
+            "id": "E3",
+            "action": [
+              "shelf_core_south"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Clover Pier' AND sku = 'core' AND region = 'south') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, CASE WHEN COUNT(available) = COUNT(*) THEN AVG(available) END AS availability, COUNT(available) AS recorded,\n            COUNT(*) AS panel_rows, SUM(units) AS units, SUM(CASE WHEN switched THEN units END) AS switched_units, COUNT(*) FILTER (WHERE available = 0) AS unavailable_days, SUM(units) FILTER (WHERE available = 0) AS unavailable_units\n            FROM (SELECT *, MIN(available) FILTER (WHERE period = 0) OVER (PARTITION BY sku,region) = 1\n              AND MAX(available) FILTER (WHERE period = 1) OVER (PARTITION BY sku,region) = 0 AS switched\n              FROM panel) GROUP BY 1 ORDER BY 1",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "availability",
+              "recorded",
+              "panel_rows",
+              "units",
+              "switched_units",
+              "unavailable_days",
+              "unavailable_units"
+            ],
+            "rows": [
+              [
+                0,
+                1.0,
+                14,
+                14,
+                700,
+                null,
+                0,
+                null
+              ],
+              [
+                1,
+                1.0,
+                14,
+                14,
+                336,
+                null,
+                0,
+                null
+              ]
+            ],
+            "facts": [
+              "shelf_core_south:availability=stable",
+              "shelf_core_south:recorded=stable",
+              "shelf_core_south:panel_rows=stable",
+              "shelf_core_south:units=down",
+              "shelf_core_south:switched_units=missing",
+              "shelf_core_south:unavailable_days=stable",
+              "shelf_core_south:unavailable_units=missing"
+            ]
+          },
+          {
+            "id": "E4",
+            "action": [
+              "access_core_south"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Clover Pier' AND sku = 'core' AND region = 'south') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, CASE WHEN COUNT(visits) = COUNT(*) THEN SUM(visits) END AS visits, CASE WHEN COUNT(visits) = COUNT(*) THEN SUM(units)::DOUBLE / NULLIF(SUM(visits), 0) END AS conversion, COUNT(visits) AS recorded FROM panel GROUP BY 1 ORDER BY 1",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "visits",
+              "conversion",
+              "recorded"
+            ],
+            "rows": [
+              [
+                0,
+                1400,
+                0.5,
+                14
+              ],
+              [
+                1,
+                1400,
+                0.24,
+                14
+              ]
+            ],
+            "facts": [
+              "access_core_south:visits=stable",
+              "access_core_south:conversion=down",
+              "access_core_south:recorded=stable"
+            ]
+          },
+          {
+            "id": "E5",
+            "action": [
+              "offer_core_south"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Clover Pier' AND sku = 'core' AND region = 'south') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, SUM(price * units)::DOUBLE / NULLIF(SUM(units), 0) AS price, SUM(promo * units)::DOUBLE / NULLIF(SUM(units), 0) AS promo_rate FROM panel GROUP BY 1 ORDER BY 1",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "price",
+              "promo_rate"
+            ],
+            "rows": [
+              [
+                0,
+                100.0,
+                0.0
+              ],
+              [
+                1,
+                130.0,
+                0.0
+              ]
+            ],
+            "facts": [
+              "offer_core_south:price=up",
+              "offer_core_south:promo_rate=stable"
+            ]
+          }
+        ],
+        "hypotheses": [],
+        "trace": [
+          {
+            "action": "headline",
+            "evidence": "E1",
+            "decision_source": "shared_headline"
+          },
+          {
+            "action": "scope",
+            "evidence": "E2",
+            "decision_source": "adaptive_model",
+            "phase": "assess_and_plan",
+            "visible_evidence": [
+              "E1"
+            ],
+            "decision_before": null,
+            "decision_after": {
+              "assessment": {
+                "sufficient": false,
+                "gaps": [
+                  "Which SKU and region cells account for the unit decline?",
+                  "Did stock availability change on affected rows?",
+                  "Did traffic or units per visit change?",
+                  "Do pricing, promotions, complaints, service, or peers explain the decline?"
+                ],
+                "hypotheses": {
+                  "Headline units declined from 2800 to 2436": {
+                    "status": "supported",
+                    "evidence_ids": [
+                      "E1"
+                    ]
+                  },
+                  "Decline is concentrated in specific SKU-region cells": {
+                    "status": "open",
+                    "evidence_ids": []
+                  },
+                  "Stock or access changes explain the decline": {
+                    "status": "open",
+                    "evidence_ids": []
+                  }
+                }
+              },
+              "next_action": "scope",
+              "question": "Which SKU and region cells drive the decline?",
+              "evidence_ids": [
+                "E1"
+              ]
+            }
+          },
+          {
+            "action": "shelf_core_south",
+            "evidence": "E3",
+            "decision_source": "adaptive_model",
+            "phase": "assess_and_plan",
+            "visible_evidence": [
+              "E1",
+              "E2"
+            ],
+            "decision_before": {
+              "assessment": {
+                "sufficient": false,
+                "gaps": [
+                  "Which SKU and region cells account for the unit decline?",
+                  "Did stock availability change on affected rows?",
+                  "Did traffic or units per visit change?",
+                  "Do pricing, promotions, complaints, service, or peers explain the decline?"
+                ],
+                "hypotheses": {
+                  "Headline units declined from 2800 to 2436": {
+                    "status": "supported",
+                    "evidence_ids": [
+                      "E1"
+                    ]
+                  },
+                  "Decline is concentrated in specific SKU-region cells": {
+                    "status": "open",
+                    "evidence_ids": []
+                  },
+                  "Stock or access changes explain the decline": {
+                    "status": "open",
+                    "evidence_ids": []
+                  }
+                }
+              },
+              "next_action": "scope",
+              "question": "Which SKU and region cells drive the decline?",
+              "evidence_ids": [
+                "E1"
+              ]
+            },
+            "decision_after": {
+              "assessment": {
+                "sufficient": false,
+                "gaps": [
+                  "Did stock availability change for core_south?",
+                  "Did visits or units per visit change for core_south?",
+                  "Do pricing, promotions, complaints, service, or peers explain the core_south drop?"
+                ],
+                "hypotheses": {
+                  "Headline units declined from 2800 to 2436": {
+                    "status": "supported",
+                    "evidence_ids": [
+                      "E1"
+                    ]
+                  },
+                  "Decline is concentrated in specific SKU-region cells": {
+                    "status": "supported",
+                    "evidence_ids": [
+                      "E2"
+                    ]
+                  },
+                  "Stock or access changes explain the decline": {
+                    "status": "open",
+                    "evidence_ids": []
+                  }
+                }
+              },
+              "next_action": "shelf_core_south",
+              "question": "Check whether stock availability changed in core_south, the only declining cell.",
+              "evidence_ids": [
+                "E1",
+                "E2"
+              ]
+            }
+          },
+          {
+            "action": "access_core_south",
+            "evidence": "E4",
+            "decision_source": "adaptive_model",
+            "phase": "assess_and_plan",
+            "visible_evidence": [
+              "E1",
+              "E2",
+              "E3"
+            ],
+            "decision_before": {
+              "assessment": {
+                "sufficient": false,
+                "gaps": [
+                  "Did stock availability change for core_south?",
+                  "Did visits or units per visit change for core_south?",
+                  "Do pricing, promotions, complaints, service, or peers explain the core_south drop?"
+                ],
+                "hypotheses": {
+                  "Headline units declined from 2800 to 2436": {
+                    "status": "supported",
+                    "evidence_ids": [
+                      "E1"
+                    ]
+                  },
+                  "Decline is concentrated in specific SKU-region cells": {
+                    "status": "supported",
+                    "evidence_ids": [
+                      "E2"
+                    ]
+                  },
+                  "Stock or access changes explain the decline": {
+                    "status": "open",
+                    "evidence_ids": []
+                  }
+                }
+              },
+              "next_action": "shelf_core_south",
+              "question": "Check whether stock availability changed in core_south, the only declining cell.",
+              "evidence_ids": [
+                "E1",
+                "E2"
+              ]
+            },
+            "decision_after": {
+              "assessment": {
+                "sufficient": false,
+                "gaps": [
+                  "Did visits or units per visit change for core_south?",
+                  "Do pricing, promotions, complaints, service, or peers explain the core_south drop?"
+                ],
+                "hypotheses": {
+                  "Headline units declined from 2800 to 2436": {
+                    "status": "supported",
+                    "evidence_ids": [
+                      "E1"
+                    ]
+                  },
+                  "Decline is concentrated in core_south": {
+                    "status": "supported",
+                    "evidence_ids": [
+                      "E2"
+                    ]
+                  },
+                  "Stock availability changes explain the core_south decline": {
+                    "status": "refuted",
+                    "evidence_ids": [
+                      "E3"
+                    ]
+                  }
+                }
+              },
+              "next_action": "access_core_south",
+              "question": "Check visits and units per visit for core_south after stock availability stayed stable.",
+              "evidence_ids": [
+                "E1",
+                "E2",
+                "E3"
+              ]
+            }
+          },
+          {
+            "action": "offer_core_south",
+            "evidence": "E5",
+            "decision_source": "adaptive_model",
+            "phase": "assess_and_plan",
+            "visible_evidence": [
+              "E1",
+              "E2",
+              "E3",
+              "E4"
+            ],
+            "decision_before": {
+              "assessment": {
+                "sufficient": false,
+                "gaps": [
+                  "Did visits or units per visit change for core_south?",
+                  "Do pricing, promotions, complaints, service, or peers explain the core_south drop?"
+                ],
+                "hypotheses": {
+                  "Headline units declined from 2800 to 2436": {
+                    "status": "supported",
+                    "evidence_ids": [
+                      "E1"
+                    ]
+                  },
+                  "Decline is concentrated in core_south": {
+                    "status": "supported",
+                    "evidence_ids": [
+                      "E2"
+                    ]
+                  },
+                  "Stock availability changes explain the core_south decline": {
+                    "status": "refuted",
+                    "evidence_ids": [
+                      "E3"
+                    ]
+                  }
+                }
+              },
+              "next_action": "access_core_south",
+              "question": "Check visits and units per visit for core_south after stock availability stayed stable.",
+              "evidence_ids": [
+                "E1",
+                "E2",
+                "E3"
+              ]
+            },
+            "decision_after": {
+              "assessment": {
+                "sufficient": false,
+                "gaps": [
+                  "Do pricing or promotions explain the core_south conversion drop?",
+                  "Do complaints, service, or peers explain the core_south conversion drop?",
+                  "Can events or timeline identify a break in core_south conversion?"
+                ],
+                "hypotheses": {
+                  "Headline decline is concentrated in core_south": {
+                    "status": "supported",
+                    "evidence_ids": [
+                      "E1",
+                      "E2"
+                    ]
+                  },
+                  "Stock availability changes explain the core_south decline": {
+                    "status": "refuted",
+                    "evidence_ids": [
+                      "E3"
+                    ]
+                  },
+                  "Core_south drop reflects lower conversion with stable visits": {
+                    "status": "supported",
+                    "evidence_ids": [
+                      "E4"
+                    ]
+                  }
+                }
+              },
+              "next_action": "offer_core_south",
+              "question": "Check pricing and promotion share for core_south after conversion fell while visits and availability were stable.",
+              "evidence_ids": [
+                "E1",
+                "E2",
+                "E3",
+                "E4"
+              ]
+            }
+          },
+          {
+            "decision_source": "model_protocol",
+            "phase": "final_assessment",
+            "error": "truncated_output",
+            "raw_action": null,
+            "corrective_retry": true
+          },
+          {
+            "decision_source": "model_protocol",
+            "phase": "final_assessment",
+            "error": "truncated_output",
+            "raw_action": null,
+            "corrective_retry": false
+          }
+        ],
+        "stop_reason": "planner_error",
+        "model_error": "truncated_output",
+        "policy": "llm_adaptive_verified",
+        "model_hypotheses": [],
+        "verdict": "insufficient",
+        "claims": []
+      },
+      "collection_coverage": {
+        "found": 4,
+        "total": 4
+      }
+    },
+    {
+      "case": "deep_dev_02",
+      "type": "C",
+      "arm": "llm_adaptive",
+      "correct": false,
+      "statistical_localization": null,
+      "mechanism_identified": null,
+      "event_retrieval": false,
+      "event_matching": false,
+      "competing_evidence": null,
+      "correct_non_attribution": null,
+      "wrong_attribution": false,
+      "unsupported_attribution": false,
+      "completed": true,
+      "supported_claims": 16,
+      "claims": 16,
+      "required_found": 3,
+      "required_total": 4,
+      "missing_findings": [
+        "events:notice:scope=mismatch"
+      ],
+      "unsupported_claims": [],
+      "failure": "missing_evidence",
+      "rule_path_changes": 0,
+      "refutations": 0,
+      "changes_after_refutation": 0,
+      "evidence_complete": false,
+      "judgment_correct": false,
+      "gold_verdict_match": true,
+      "expected_verdict_from_observed": "insufficient",
+      "missing_evidence": [
+        "events:notice:scope=mismatch"
+      ],
+      "decisive_action": null,
+      "extra_actions_after_decisive": null,
+      "counterevidence_found": false,
+      "execution": "online_model",
+      "latency_ms": 59292.67,
+      "requests": 5,
+      "tokens": 15571,
+      "cost_usd": null,
+      "actions": 5,
+      "sql_calls": 5,
+      "event_calls": 0,
+      "actual_models": [
+        "deepseek-v4.1-flash"
+      ],
+      "response_diagnostics": [
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 11531,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "stop",
+          "content_chars": 209,
+          "blank": false,
+          "completion_over_requested_limit": false,
+          "reasoning_chars": 0,
+          "reported_effort": null,
+          "reasoning_tokens": null,
+          "content_equals_reasoning": false,
+          "prompt_tokens": 2250,
+          "completion_tokens": 786,
+          "response_status": "json",
+          "total_tokens": 3036,
+          "latency_ms": 6436.26,
+          "retained_tokens": 0
+        },
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 12153,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "stop",
+          "content_chars": 199,
+          "blank": false,
+          "completion_over_requested_limit": false,
+          "reasoning_chars": 0,
+          "reported_effort": null,
+          "reasoning_tokens": null,
+          "content_equals_reasoning": false,
+          "prompt_tokens": 2778,
+          "completion_tokens": 108,
+          "response_status": "json",
+          "total_tokens": 2886,
+          "latency_ms": 7047.07,
+          "retained_tokens": 0
+        },
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 12575,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "stop",
+          "content_chars": 219,
+          "blank": false,
+          "completion_over_requested_limit": false,
+          "reasoning_chars": 3566,
+          "reported_effort": null,
+          "reasoning_tokens": null,
+          "content_equals_reasoning": false,
+          "prompt_tokens": 2987,
+          "completion_tokens": 1746,
+          "response_status": "json",
+          "total_tokens": 4733,
+          "latency_ms": 10576.98,
+          "retained_tokens": 0
+        },
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 12759,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "stop",
+          "content_chars": 200,
+          "blank": false,
+          "completion_over_requested_limit": false,
+          "reasoning_chars": 0,
+          "reported_effort": null,
+          "reasoning_tokens": 788,
+          "content_equals_reasoning": false,
+          "prompt_tokens": 1594,
+          "completion_tokens": 837,
+          "response_status": "json",
+          "total_tokens": 2431,
+          "latency_ms": 11281.6,
+          "retained_tokens": 0
+        },
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 9088,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "stop",
+          "content_chars": 966,
+          "blank": false,
+          "completion_over_requested_limit": false,
+          "reasoning_chars": 7833,
+          "reported_effort": null,
+          "reasoning_tokens": null,
+          "content_equals_reasoning": false,
+          "prompt_tokens": 541,
+          "completion_tokens": 1944,
+          "response_status": "json",
+          "total_tokens": 2485,
+          "latency_ms": 23847.36,
+          "retained_tokens": 0
+        }
+      ],
+      "details": {
+        "goal": {
+          "question": "Moss Rill sold fewer units in the latest fortnight. Investigate where the decline is concentrated, weigh the most relevant explanations, and report what the available evidence can establish.",
+          "domain": "retail",
+          "before": [
+            "2025-06-01",
+            "2025-06-15"
+          ],
+          "current": [
+            "2025-06-15",
+            "2025-06-29"
+          ],
+          "entity": "Moss Rill",
+          "metric": "units",
+          "dimension": null
+        },
+        "available_tools": [
+          "events",
+          "timeline",
+          "scope",
+          "stock",
+          "stock_core",
+          "stock_plus",
+          "pricing",
+          "access",
+          "peer",
+          "complaints",
+          "service",
+          "shelf_core_north",
+          "shelf_core_south",
+          "shelf_plus_north",
+          "shelf_plus_south",
+          "access_core_north",
+          "access_core_south",
+          "access_plus_north",
+          "access_plus_south",
+          "offer_core_north",
+          "offer_core_south",
+          "offer_plus_north",
+          "offer_plus_south"
+        ],
+        "remaining_budget": 0,
+        "evidence": [
+          {
+            "id": "E1",
+            "action": [
+              "headline"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Moss Rill') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, SUM(units) AS units FROM panel GROUP BY 1 ORDER BY 1",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "units"
+            ],
+            "rows": [
+              [
+                0,
+                2800
+              ],
+              [
+                1,
+                2478
+              ]
+            ],
+            "facts": [
+              "headline:units=down"
+            ]
+          },
+          {
+            "id": "E2",
+            "action": [
+              "scope"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Moss Rill') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, 'sku' AS axis, sku AS key, SUM(units) AS units, SUM(complaints) AS complaints\n            FROM panel GROUP BY 1, 2, 3 UNION ALL\n            SELECT period, 'region', region, SUM(units), SUM(complaints) FROM panel GROUP BY 1, 2, 3 UNION ALL SELECT period, 'cell', sku || '_' || region, SUM(units), SUM(complaints)\n                FROM panel GROUP BY 1, 2, 3 ORDER BY 1, 2, 3",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "axis",
+              "key",
+              "units",
+              "complaints"
+            ],
+            "rows": [
+              [
+                0,
+                "cell",
+                "core_north",
+                700,
+                14
+              ],
+              [
+                0,
+                "cell",
+                "core_south",
+                700,
+                14
+              ],
+              [
+                0,
+                "cell",
+                "plus_north",
+                700,
+                14
+              ],
+              [
+                0,
+                "cell",
+                "plus_south",
+                700,
+                14
+              ],
+              [
+                0,
+                "region",
+                "north",
+                1400,
+                28
+              ],
+              [
+                0,
+                "region",
+                "south",
+                1400,
+                28
+              ],
+              [
+                0,
+                "sku",
+                "core",
+                1400,
+                28
+              ],
+              [
+                0,
+                "sku",
+                "plus",
+                1400,
+                28
+              ],
+              [
+                1,
+                "cell",
+                "core_north",
+                700,
+                14
+              ],
+              [
+                1,
+                "cell",
+                "core_south",
+                700,
+                14
+              ],
+              [
+                1,
+                "cell",
+                "plus_north",
+                378,
+                14
+              ],
+              [
+                1,
+                "cell",
+                "plus_south",
+                700,
+                14
+              ],
+              [
+                1,
+                "region",
+                "north",
+                1078,
+                28
+              ],
+              [
+                1,
+                "region",
+                "south",
+                1400,
+                28
+              ],
+              [
+                1,
+                "sku",
+                "core",
+                1400,
+                28
+              ],
+              [
+                1,
+                "sku",
+                "plus",
+                1078,
+                28
+              ]
+            ],
+            "facts": [
+              "scope:sku=plus",
+              "scope:region=north",
+              "scope:cell=plus_north"
+            ]
+          },
+          {
+            "id": "E3",
+            "action": [
+              "shelf_plus_north"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Moss Rill' AND sku = 'plus' AND region = 'north') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, CASE WHEN COUNT(available) = COUNT(*) THEN AVG(available) END AS availability, COUNT(available) AS recorded,\n            COUNT(*) AS panel_rows, SUM(units) AS units, SUM(CASE WHEN switched THEN units END) AS switched_units, COUNT(*) FILTER (WHERE available = 0) AS unavailable_days, SUM(units) FILTER (WHERE available = 0) AS unavailable_units\n            FROM (SELECT *, MIN(available) FILTER (WHERE period = 0) OVER (PARTITION BY sku,region) = 1\n              AND MAX(available) FILTER (WHERE period = 1) OVER (PARTITION BY sku,region) = 0 AS switched\n              FROM panel) GROUP BY 1 ORDER BY 1",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "availability",
+              "recorded",
+              "panel_rows",
+              "units",
+              "switched_units",
+              "unavailable_days",
+              "unavailable_units"
+            ],
+            "rows": [
+              [
+                0,
+                1.0,
+                14,
+                14,
+                700,
+                null,
+                0,
+                null
+              ],
+              [
+                1,
+                1.0,
+                14,
+                14,
+                378,
+                null,
+                0,
+                null
+              ]
+            ],
+            "facts": [
+              "shelf_plus_north:availability=stable",
+              "shelf_plus_north:recorded=stable",
+              "shelf_plus_north:panel_rows=stable",
+              "shelf_plus_north:units=down",
+              "shelf_plus_north:switched_units=missing",
+              "shelf_plus_north:unavailable_days=stable",
+              "shelf_plus_north:unavailable_units=missing"
+            ]
+          },
+          {
+            "id": "E4",
+            "action": [
+              "access_plus_north"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Moss Rill' AND sku = 'plus' AND region = 'north') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, CASE WHEN COUNT(visits) = COUNT(*) THEN SUM(visits) END AS visits, CASE WHEN COUNT(visits) = COUNT(*) THEN SUM(units)::DOUBLE / NULLIF(SUM(visits), 0) END AS conversion, COUNT(visits) AS recorded FROM panel GROUP BY 1 ORDER BY 1",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "visits",
+              "conversion",
+              "recorded"
+            ],
+            "rows": [
+              [
+                0,
+                1400,
+                0.5,
+                14
+              ],
+              [
+                1,
+                756,
+                0.5,
+                14
+              ]
+            ],
+            "facts": [
+              "access_plus_north:visits=down",
+              "access_plus_north:conversion=stable",
+              "access_plus_north:recorded=stable"
+            ]
+          },
+          {
+            "id": "E5",
+            "action": [
+              "offer_plus_north"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Moss Rill' AND sku = 'plus' AND region = 'north') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, SUM(price * units)::DOUBLE / NULLIF(SUM(units), 0) AS price, SUM(promo * units)::DOUBLE / NULLIF(SUM(units), 0) AS promo_rate FROM panel GROUP BY 1 ORDER BY 1",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "price",
+              "promo_rate"
+            ],
+            "rows": [
+              [
+                0,
+                100.0,
+                0.0
+              ],
+              [
+                1,
+                100.0,
+                0.0
+              ]
+            ],
+            "facts": [
+              "offer_plus_north:price=stable",
+              "offer_plus_north:promo_rate=stable"
+            ]
+          }
+        ],
+        "hypotheses": [
+          {
+            "action": [
+              "shelf_plus_north"
+            ],
+            "segment": [],
+            "effect": "stock_plus_north:availability=down",
+            "state": "untested",
+            "priority": 0,
+            "contribution": null,
+            "evidence": [
+              "E3"
+            ],
+            "cohort": [],
+            "id": null,
+            "direction": null
+          },
+          {
+            "action": [
+              "access_plus_north"
+            ],
+            "segment": [],
+            "effect": "access_plus_north:units_per_visit=down",
+            "state": "untested",
+            "priority": 0,
+            "contribution": null,
+            "evidence": [
+              "E4"
+            ],
+            "cohort": [],
+            "id": null,
+            "direction": null
+          },
+          {
+            "action": [
+              "offer_plus_north"
+            ],
+            "segment": [],
+            "effect": "offer_plus_north:promotion_share=down",
+            "state": "untested",
+            "priority": 0,
+            "contribution": null,
+            "evidence": [
+              "E5"
+            ],
+            "cohort": [],
+            "id": null,
+            "direction": null
+          }
+        ],
+        "trace": [
+          {
+            "action": "headline",
+            "evidence": "E1",
+            "decision_source": "shared_headline"
+          },
+          {
+            "action": "scope",
+            "evidence": "E2",
+            "expect": null,
+            "next_action": null,
+            "decision_source": "adaptive_model",
+            "visible_evidence": [
+              "E1"
+            ],
+            "question": "The headline only shows total units down; first locate where the decline is concentrated by SKU and region.",
+            "evidence_ids": [],
+            "raw_action": "{\"action\":\"scope\"}",
+            "correction_of": null,
+            "prior_plan": null,
+            "refutation": null,
+            "changed_after_refutation": false
+          },
+          {
+            "action": "shelf_plus_north",
+            "evidence": "E3",
+            "expect": "stock_plus_north:availability=down",
+            "next_action": "offer_plus_north",
+            "decision_source": "adaptive_model",
+            "visible_evidence": [
+              "E1",
+              "E2"
+            ],
+            "question": "Decline is concentrated in plus_north (700→378); check whether stockouts explain it.",
+            "evidence_ids": [],
+            "raw_action": "{\"action\":\"shelf_plus_north\",\"next\":\"offer_plus_north\"}",
+            "correction_of": null,
+            "prior_plan": null,
+            "refutation": null,
+            "changed_after_refutation": false
+          },
+          {
+            "action": "access_plus_north",
+            "evidence": "E4",
+            "expect": "access_plus_north:units_per_visit=down",
+            "next_action": "offer_plus_north",
+            "decision_source": "adaptive_model",
+            "visible_evidence": [
+              "E1",
+              "E2",
+              "E3"
+            ],
+            "question": "Decline is isolated to plus_north while shelf availability is stable; check traffic and conversion.",
+            "evidence_ids": [],
+            "raw_action": "{\"action\":\"access_plus_north\",\"next\":\"offer_plus_north\"}",
+            "correction_of": null,
+            "prior_plan": "offer_plus_north",
+            "refutation": null,
+            "changed_after_refutation": false
+          },
+          {
+            "action": "offer_plus_north",
+            "evidence": "E5",
+            "expect": "offer_plus_north:promotion_share=down",
+            "next_action": null,
+            "decision_source": "adaptive_model",
+            "visible_evidence": [
+              "E1",
+              "E2",
+              "E3",
+              "E4"
+            ],
+            "question": "Traffic decline is isolated to plus_north, so check whether price or promotion changes explain lower visits.",
+            "evidence_ids": [],
+            "raw_action": "{\"action\":\"offer_plus_north\"}",
+            "correction_of": null,
+            "prior_plan": "offer_plus_north",
+            "refutation": null,
+            "changed_after_refutation": false
+          }
+        ],
+        "stop_reason": "budget_exhausted",
+        "model_error": null,
+        "policy": "llm_adaptive",
+        "model_hypotheses": [],
+        "verdict": "association",
+        "claims": [
+          {
+            "evidence": "E1",
+            "fact": "headline:units=down"
+          },
+          {
+            "evidence": "E2",
+            "fact": "scope:sku=plus"
+          },
+          {
+            "evidence": "E2",
+            "fact": "scope:region=north"
+          },
+          {
+            "evidence": "E2",
+            "fact": "scope:cell=plus_north"
+          },
+          {
+            "evidence": "E3",
+            "fact": "shelf_plus_north:units=down"
+          },
+          {
+            "evidence": "E3",
+            "fact": "shelf_plus_north:availability=stable"
+          },
+          {
+            "evidence": "E3",
+            "fact": "shelf_plus_north:recorded=stable"
+          },
+          {
+            "evidence": "E3",
+            "fact": "shelf_plus_north:panel_rows=stable"
+          },
+          {
+            "evidence": "E3",
+            "fact": "shelf_plus_north:unavailable_days=stable"
+          },
+          {
+            "evidence": "E3",
+            "fact": "shelf_plus_north:switched_units=missing"
+          },
+          {
+            "evidence": "E3",
+            "fact": "shelf_plus_north:unavailable_units=missing"
+          },
+          {
+            "evidence": "E4",
+            "fact": "access_plus_north:visits=down"
+          },
+          {
+            "evidence": "E4",
+            "fact": "access_plus_north:conversion=stable"
+          },
+          {
+            "evidence": "E4",
+            "fact": "access_plus_north:recorded=stable"
+          },
+          {
+            "evidence": "E5",
+            "fact": "offer_plus_north:price=stable"
+          },
+          {
+            "evidence": "E5",
+            "fact": "offer_plus_north:promo_rate=stable"
+          }
+        ]
+      },
+      "gold": {
+        "verdict": "association",
+        "findings": [
+          "headline:units=down",
+          "scope:cell=plus_north",
+          "access_plus_north:visits=down",
+          "events:notice:scope=mismatch"
+        ],
+        "alternatives": [],
+        "counterevidence": [
+          "events:notice:scope=mismatch"
+        ]
+      },
+      "historical": true,
+      "collection_coverage": {
+        "found": 3,
+        "total": 4
+      }
+    },
+    {
+      "case": "deep_dev_02",
+      "type": "C",
+      "arm": "rule_adaptive",
+      "correct": true,
+      "statistical_localization": null,
+      "mechanism_identified": null,
+      "event_retrieval": true,
+      "event_matching": true,
+      "competing_evidence": null,
+      "correct_non_attribution": null,
+      "wrong_attribution": false,
+      "unsupported_attribution": false,
+      "completed": true,
+      "supported_claims": 16,
+      "claims": 16,
+      "required_found": 4,
+      "required_total": 4,
+      "missing_findings": [],
+      "unsupported_claims": [],
+      "failure": null,
+      "rule_path_changes": 0,
+      "refutations": 0,
+      "changes_after_refutation": 0,
+      "evidence_complete": true,
+      "judgment_correct": true,
+      "gold_verdict_match": true,
+      "expected_verdict_from_observed": "association",
+      "missing_evidence": [],
+      "decisive_action": 4,
+      "extra_actions_after_decisive": 0,
+      "counterevidence_found": true,
+      "execution": "deterministic",
+      "latency_ms": 29.21,
+      "requests": 0,
+      "tokens": 0,
+      "cost_usd": 0,
+      "actions": 4,
+      "sql_calls": 3,
+      "event_calls": 1,
+      "actual_models": [],
+      "response_diagnostics": [],
+      "details": {
+        "goal": {
+          "question": "Moss Rill sold fewer units in the latest fortnight. Investigate where the decline is concentrated, weigh the most relevant explanations, and report what the available evidence can establish.",
+          "domain": "retail",
+          "before": [
+            "2025-06-01",
+            "2025-06-15"
+          ],
+          "current": [
+            "2025-06-15",
+            "2025-06-29"
+          ],
+          "entity": "Moss Rill",
+          "metric": "units",
+          "dimension": null
+        },
+        "available_tools": [
+          "events",
+          "timeline",
+          "scope",
+          "stock",
+          "stock_core",
+          "stock_plus",
+          "pricing",
+          "access",
+          "peer",
+          "complaints",
+          "service",
+          "shelf_core_north",
+          "shelf_core_south",
+          "shelf_plus_north",
+          "shelf_plus_south",
+          "access_core_north",
+          "access_core_south",
+          "access_plus_north",
+          "access_plus_south",
+          "offer_core_north",
+          "offer_core_south",
+          "offer_plus_north",
+          "offer_plus_south"
+        ],
+        "remaining_budget": 1,
+        "evidence": [
+          {
+            "id": "E1",
+            "action": [
+              "headline"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Moss Rill') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, SUM(units) AS units FROM panel GROUP BY 1 ORDER BY 1",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "units"
+            ],
+            "rows": [
+              [
+                0,
+                2800
+              ],
+              [
+                1,
+                2478
+              ]
+            ],
+            "facts": [
+              "headline:units=down"
+            ]
+          },
+          {
+            "id": "E2",
+            "action": [
+              "scope"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Moss Rill') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, 'sku' AS axis, sku AS key, SUM(units) AS units, SUM(complaints) AS complaints\n            FROM panel GROUP BY 1, 2, 3 UNION ALL\n            SELECT period, 'region', region, SUM(units), SUM(complaints) FROM panel GROUP BY 1, 2, 3 UNION ALL SELECT period, 'cell', sku || '_' || region, SUM(units), SUM(complaints)\n                FROM panel GROUP BY 1, 2, 3 ORDER BY 1, 2, 3",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "axis",
+              "key",
+              "units",
+              "complaints"
+            ],
+            "rows": [
+              [
+                0,
+                "cell",
+                "core_north",
+                700,
+                14
+              ],
+              [
+                0,
+                "cell",
+                "core_south",
+                700,
+                14
+              ],
+              [
+                0,
+                "cell",
+                "plus_north",
+                700,
+                14
+              ],
+              [
+                0,
+                "cell",
+                "plus_south",
+                700,
+                14
+              ],
+              [
+                0,
+                "region",
+                "north",
+                1400,
+                28
+              ],
+              [
+                0,
+                "region",
+                "south",
+                1400,
+                28
+              ],
+              [
+                0,
+                "sku",
+                "core",
+                1400,
+                28
+              ],
+              [
+                0,
+                "sku",
+                "plus",
+                1400,
+                28
+              ],
+              [
+                1,
+                "cell",
+                "core_north",
+                700,
+                14
+              ],
+              [
+                1,
+                "cell",
+                "core_south",
+                700,
+                14
+              ],
+              [
+                1,
+                "cell",
+                "plus_north",
+                378,
+                14
+              ],
+              [
+                1,
+                "cell",
+                "plus_south",
+                700,
+                14
+              ],
+              [
+                1,
+                "region",
+                "north",
+                1078,
+                28
+              ],
+              [
+                1,
+                "region",
+                "south",
+                1400,
+                28
+              ],
+              [
+                1,
+                "sku",
+                "core",
+                1400,
+                28
+              ],
+              [
+                1,
+                "sku",
+                "plus",
+                1078,
+                28
+              ]
+            ],
+            "facts": [
+              "scope:sku=plus",
+              "scope:region=north",
+              "scope:cell=plus_north"
+            ]
+          },
+          {
+            "id": "E3",
+            "action": [
+              "events"
+            ],
+            "sql": [
+              "",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "id",
+              "subject",
+              "date",
+              "scope",
+              "text",
+              "source"
+            ],
+            "rows": [
+              [
+                "notice",
+                "Moss Rill",
+                "2025-06-15",
+                "core",
+                "A trade report describes a core SKU warranty notice.",
+                "fictional benchmark archive"
+              ],
+              [
+                "listing",
+                "Moss Rill",
+                "2025-06-14",
+                "plus_north",
+                "A marketplace publishes a regional update to catalog access.",
+                "fictional benchmark archive"
+              ],
+              [
+                "bulletin",
+                "Moss Rill",
+                "2025-06-10",
+                "all",
+                "The retailer posted updated office opening hours.",
+                "fictional benchmark archive"
+              ],
+              [
+                "digest",
+                "Moss Rill Partners",
+                "2025-06-16",
+                "all",
+                "A regional trade roundup discusses retailers' social campaigns.",
+                "fictional benchmark archive"
+              ],
+              [
+                "calendar",
+                "Moss Rill",
+                "2025-06-07",
+                "all",
+                "A conference organizer listed a later trade fair date.",
+                "fictional benchmark archive"
+              ]
+            ],
+            "facts": []
+          },
+          {
+            "id": "E4",
+            "action": [
+              "access_plus_north"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Moss Rill' AND sku = 'plus' AND region = 'north') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, CASE WHEN COUNT(visits) = COUNT(*) THEN SUM(visits) END AS visits, CASE WHEN COUNT(visits) = COUNT(*) THEN SUM(units)::DOUBLE / NULLIF(SUM(visits), 0) END AS conversion, COUNT(visits) AS recorded FROM panel GROUP BY 1 ORDER BY 1",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "visits",
+              "conversion",
+              "recorded"
+            ],
+            "rows": [
+              [
+                0,
+                1400,
+                0.5,
+                14
+              ],
+              [
+                1,
+                756,
+                0.5,
+                14
+              ]
+            ],
+            "facts": [
+              "access_plus_north:visits=down",
+              "access_plus_north:conversion=stable",
+              "access_plus_north:recorded=stable"
+            ]
+          }
+        ],
+        "hypotheses": [],
+        "trace": [
+          {
+            "action": "headline",
+            "evidence": "E1",
+            "decision_source": "shared_headline"
+          },
+          {
+            "action": "scope",
+            "evidence": "E2",
+            "decision_source": "rule_adaptive",
+            "planned": "scope"
+          },
+          {
+            "action": "events",
+            "evidence": "E3",
+            "decision_source": "rule_adaptive",
+            "planned": "events"
+          },
+          {
+            "action": "access_plus_north",
+            "evidence": "E4",
+            "decision_source": "rule_adaptive",
+            "planned": "access_plus_north"
+          }
+        ],
+        "stop_reason": "report_complete",
+        "model_error": null,
+        "policy": "rule_adaptive",
+        "model_hypotheses": [],
+        "verdict": "association",
+        "claims": [
+          {
+            "evidence": "E1",
+            "fact": "headline:units=down"
+          },
+          {
+            "evidence": "E2",
+            "fact": "scope:sku=plus"
+          },
+          {
+            "evidence": "E2",
+            "fact": "scope:region=north"
+          },
+          {
+            "evidence": "E2",
+            "fact": "scope:cell=plus_north"
+          },
+          {
+            "evidence": "E3",
+            "fact": "events:notice=matched"
+          },
+          {
+            "evidence": "E3",
+            "fact": "events:notice:scope=mismatch"
+          },
+          {
+            "evidence": "E3",
+            "fact": "events:listing=matched"
+          },
+          {
+            "evidence": "E3",
+            "fact": "events:listing:scope=match"
+          },
+          {
+            "evidence": "E3",
+            "fact": "events:bulletin=early"
+          },
+          {
+            "evidence": "E3",
+            "fact": "events:bulletin:scope=match"
+          },
+          {
+            "evidence": "E3",
+            "fact": "events:digest=wrong_subject"
+          },
+          {
+            "evidence": "E3",
+            "fact": "events:calendar=early"
+          },
+          {
+            "evidence": "E3",
+            "fact": "events:calendar:scope=match"
+          },
+          {
+            "evidence": "E4",
+            "fact": "access_plus_north:visits=down"
+          },
+          {
+            "evidence": "E4",
+            "fact": "access_plus_north:conversion=stable"
+          },
+          {
+            "evidence": "E4",
+            "fact": "access_plus_north:recorded=stable"
+          }
+        ]
+      },
+      "gold": {
+        "verdict": "association",
+        "findings": [
+          "headline:units=down",
+          "scope:cell=plus_north",
+          "access_plus_north:visits=down",
+          "events:notice:scope=mismatch"
+        ],
+        "alternatives": [],
+        "counterevidence": [
+          "events:notice:scope=mismatch"
+        ]
+      },
+      "collection_coverage": {
+        "found": 4,
+        "total": 4
+      }
+    },
+    {
+      "case": "deep_dev_02",
+      "arm": "llm_adaptive_verified",
+      "correct": false,
+      "statistical_localization": null,
+      "mechanism_identified": null,
+      "event_retrieval": false,
+      "event_matching": false,
+      "competing_evidence": null,
+      "correct_non_attribution": null,
+      "wrong_attribution": false,
+      "unsupported_attribution": false,
+      "completed": false,
+      "supported_claims": 0,
+      "claims": 0,
+      "required_found": 0,
+      "required_total": 4,
+      "missing_findings": [
+        "access_plus_north:visits=down",
+        "events:notice:scope=mismatch",
+        "headline:units=down",
+        "scope:cell=plus_north"
+      ],
+      "unsupported_claims": [],
+      "failure": "budget_limit",
+      "rule_path_changes": 0,
+      "refutations": 0,
+      "changes_after_refutation": 0,
+      "evidence_complete": false,
+      "judgment_correct": null,
+      "gold_verdict_match": null,
+      "expected_verdict_from_observed": "insufficient",
+      "missing_evidence": [
+        "access_plus_north:visits=down",
+        "events:notice:scope=mismatch"
+      ],
+      "decisive_action": null,
+      "extra_actions_after_decisive": null,
+      "counterevidence_found": false,
+      "actions": 2,
+      "requests": 1,
+      "tokens": 4224,
+      "actual_models": [
+        "deepseek-v4.1-flash"
+      ],
+      "same_actual_model": true,
+      "latency_ms": 17566.16,
+      "response_diagnostics": [
+        {
+          "attempt": 1,
+          "output_limit": 3072,
+          "token_reservation": 11166,
+          "route": "vx_flash",
+          "model": "deepseek-v4.1-flash",
+          "key_slot": "1",
+          "switch_reason": null,
+          "response_format": "json_object",
+          "reasoning_effort": "low",
+          "thinking_enabled_requested": true,
+          "timeout_seconds": 85,
+          "reported_model": "deepseek-v4.1-flash",
+          "finish_reason": "stop",
+          "content_chars": 654,
+          "blank": false,
+          "completion_over_requested_limit": false,
+          "reasoning_chars": 4680,
+          "reported_effort": null,
+          "reasoning_tokens": null,
+          "content_equals_reasoning": false,
+          "prompt_tokens": 1862,
+          "completion_tokens": 2362,
+          "response_status": "json",
+          "total_tokens": 4224,
+          "latency_ms": 17538.07,
+          "retained_tokens": 0,
+          "decision_phase": "assess_and_plan"
+        }
+      ],
+      "requests_by_phase": {
+        "assess_and_plan": 1,
+        "final_assessment": 0
+      },
+      "standalone_verifier_requests": 0,
+      "details": {
+        "goal": {
+          "question": "Moss Rill sold fewer units in the latest fortnight. Investigate where the decline is concentrated, weigh the most relevant explanations, and report what the available evidence can establish.",
+          "domain": "retail",
+          "before": [
+            "2025-06-01",
+            "2025-06-15"
+          ],
+          "current": [
+            "2025-06-15",
+            "2025-06-29"
+          ],
+          "entity": "Moss Rill",
+          "metric": "units",
+          "dimension": null
+        },
+        "available_tools": [
+          "events",
+          "timeline",
+          "scope",
+          "stock",
+          "stock_core",
+          "stock_plus",
+          "pricing",
+          "access",
+          "peer",
+          "complaints",
+          "service",
+          "shelf_core_north",
+          "shelf_core_south",
+          "shelf_plus_north",
+          "shelf_plus_south",
+          "access_core_north",
+          "access_core_south",
+          "access_plus_north",
+          "access_plus_south",
+          "offer_core_north",
+          "offer_core_south",
+          "offer_plus_north",
+          "offer_plus_south"
+        ],
+        "remaining_budget": 3,
+        "evidence": [
+          {
+            "id": "E1",
+            "action": [
+              "headline"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Moss Rill') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, SUM(units) AS units FROM panel GROUP BY 1 ORDER BY 1",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "units"
+            ],
+            "rows": [
+              [
+                0,
+                2800
+              ],
+              [
+                1,
+                2478
+              ]
+            ],
+            "facts": [
+              "headline:units=down"
+            ]
+          },
+          {
+            "id": "E2",
+            "action": [
+              "scope"
+            ],
+            "sql": [
+              "WITH panel AS (SELECT *, CASE WHEN day >= '2025-06-15' AND day < '2025-06-29' THEN 1 ELSE 0 END AS period FROM (SELECT * FROM retail WHERE entity = 'Moss Rill') AS source WHERE (day >= '2025-06-01' AND day < '2025-06-15') OR (day >= '2025-06-15' AND day < '2025-06-29')) SELECT period, 'sku' AS axis, sku AS key, SUM(units) AS units, SUM(complaints) AS complaints\n            FROM panel GROUP BY 1, 2, 3 UNION ALL\n            SELECT period, 'region', region, SUM(units), SUM(complaints) FROM panel GROUP BY 1, 2, 3 UNION ALL SELECT period, 'cell', sku || '_' || region, SUM(units), SUM(complaints)\n                FROM panel GROUP BY 1, 2, 3 ORDER BY 1, 2, 3",
+              ""
+            ],
+            "segments": [],
+            "error": null,
+            "cohort": [],
+            "columns": [
+              "period",
+              "axis",
+              "key",
+              "units",
+              "complaints"
+            ],
+            "rows": [
+              [
+                0,
+                "cell",
+                "core_north",
+                700,
+                14
+              ],
+              [
+                0,
+                "cell",
+                "core_south",
+                700,
+                14
+              ],
+              [
+                0,
+                "cell",
+                "plus_north",
+                700,
+                14
+              ],
+              [
+                0,
+                "cell",
+                "plus_south",
+                700,
+                14
+              ],
+              [
+                0,
+                "region",
+                "north",
+                1400,
+                28
+              ],
+              [
+                0,
+                "region",
+                "south",
+                1400,
+                28
+              ],
+              [
+                0,
+                "sku",
+                "core",
+                1400,
+                28
+              ],
+              [
+                0,
+                "sku",
+                "plus",
+                1400,
+                28
+              ],
+              [
+                1,
+                "cell",
+                "core_north",
+                700,
+                14
+              ],
+              [
+                1,
+                "cell",
+                "core_south",
+                700,
+                14
+              ],
+              [
+                1,
+                "cell",
+                "plus_north",
+                378,
+                14
+              ],
+              [
+                1,
+                "cell",
+                "plus_south",
+                700,
+                14
+              ],
+              [
+                1,
+                "region",
+                "north",
+                1078,
+                28
+              ],
+              [
+                1,
+                "region",
+                "south",
+                1400,
+                28
+              ],
+              [
+                1,
+                "sku",
+                "core",
+                1400,
+                28
+              ],
+              [
+                1,
+                "sku",
+                "plus",
+                1078,
+                28
+              ]
+            ],
+            "facts": [
+              "scope:sku=plus",
+              "scope:region=north",
+              "scope:cell=plus_north"
+            ]
+          }
+        ],
+        "hypotheses": [],
+        "trace": [
+          {
+            "action": "headline",
+            "evidence": "E1",
+            "decision_source": "shared_headline"
+          },
+          {
+            "action": "scope",
+            "evidence": "E2",
+            "decision_source": "adaptive_model",
+            "phase": "assess_and_plan",
+            "visible_evidence": [
+              "E1"
+            ],
+            "decision_before": null,
+            "decision_after": {
+              "assessment": {
+                "sufficient": false,
+                "gaps": [
+                  "Which SKU, region, or SKU-region cells drive the unit decline?",
+                  "Did stock availability change in affected cells?",
+                  "Did price or promotion changes coincide with the decline?",
+                  "Did visits or units per visit change?"
+                ],
+                "hypotheses": {
+                  "The decline is concentrated in a subset of SKU-region cells": {
+                    "status": "open",
+                    "evidence_ids": []
+                  },
+                  "Availability constraints explain the decline": {
+                    "status": "open",
+                    "evidence_ids": []
+                  },
+                  "Traffic or conversion decline explains the decline": {
+                    "status": "open",
+                    "evidence_ids": []
+                  }
+                }
+              },
+              "next_action": "scope",
+              "question": "Which SKU and region cells account for the unit decline?",
+              "evidence_ids": [
+                "E1"
+              ]
+            }
+          },
+          {
+            "decision_source": "model_protocol",
+            "phase": "assess_and_plan",
+            "error": "budget_limit",
+            "raw_action": null,
+            "corrective_retry": false
+          }
+        ],
+        "stop_reason": "planner_error",
+        "model_error": "budget_limit",
+        "policy": "llm_adaptive_verified",
+        "model_hypotheses": [],
+        "verdict": "insufficient",
+        "claims": []
+      },
+      "collection_coverage": {
+        "found": 2,
+        "total": 4
+      }
+    }
+  ],
+  "budget_journal_id": "334fcefdc7d047de92bde4bf0a0afb8a",
+  "cumulative_online_usage": {
+    "requests": 10,
+    "tokens": 45411,
+    "unknown_usage_requests": 2,
+    "reserved_unknown_tokens": 24798,
+    "unbounded_usage": false
+  }
+}

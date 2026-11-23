@@ -1,0 +1,1902 @@
+{
+  "experiment_id": "insightbench-csv-v1",
+  "split": "public_development",
+  "upstream_revision": "33c27c1282cb7ed73267d36fb84e27b6ea8aac2b",
+  "asset_manifest_sha256": "c7318b383e12577af1f50ea0683c1f1bad3051c658f69a782a1fd58696dc8ff2",
+  "analysis_source_sha256": "2bcebfa539ed31f11320e672a2caf9c34988410020ac8103d3ebd5c76299ae12",
+  "duckdb_version": "1.5.6",
+  "execution": "offline_scripted",
+  "limits": {
+    "requests": 24,
+    "tokens": 80000,
+    "actions_per_run": 3
+  },
+  "runs": [
+    {
+      "goal": "Find the discrepancy and imbalance in distribution of incidents assigned across categories",
+      "data_sha256": "7a262de8d6654f97c89775d8392cfd4e9f7fd8f028545cb874fcee3d2cd3278c",
+      "profile": {
+        "table": "source_data",
+        "rows": 500,
+        "columns": [
+          {
+            "name": "category",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          },
+          {
+            "name": "state",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 2
+          },
+          {
+            "name": "closed_at",
+            "type": "TIMESTAMP",
+            "kind": "temporal",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500,
+            "valid_time": 500
+          },
+          {
+            "name": "opened_at",
+            "type": "TIMESTAMP",
+            "kind": "temporal",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500,
+            "valid_time": 500
+          },
+          {
+            "name": "closed_by",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          },
+          {
+            "name": "number",
+            "type": "VARCHAR",
+            "kind": "text",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500
+          },
+          {
+            "name": "sys_updated_by",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 3
+          },
+          {
+            "name": "location",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          },
+          {
+            "name": "assigned_to",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          },
+          {
+            "name": "caller_id",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 4
+          },
+          {
+            "name": "sys_updated_on",
+            "type": "TIMESTAMP",
+            "kind": "temporal",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500,
+            "valid_time": 500
+          },
+          {
+            "name": "short_description",
+            "type": "VARCHAR",
+            "kind": "text",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 390
+          },
+          {
+            "name": "assignment_group",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          },
+          {
+            "name": "priority",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 4
+          }
+        ]
+      },
+      "strategy": "fixed",
+      "action_budget": 3,
+      "tool_calls": 2,
+      "evidence": [
+        {
+          "id": "E1",
+          "step": {
+            "question": "How many incidents are in each category?",
+            "why": "Measure a part of the business goal.",
+            "columns": [
+              "category"
+            ],
+            "check": "Inspect group sizes and comparison scope.",
+            "sql": "SELECT category, count(*) AS incidents FROM source_data GROUP BY category ORDER BY incidents DESC, category"
+          },
+          "status": "success",
+          "columns": [
+            "category",
+            "incidents"
+          ],
+          "rows": [
+            [
+              "Hardware",
+              336
+            ],
+            [
+              "Network",
+              51
+            ],
+            [
+              "Software",
+              41
+            ],
+            [
+              "Database",
+              40
+            ],
+            [
+              "Inquiry / Help",
+              32
+            ]
+          ],
+          "truncated": false,
+          "error": null,
+          "error_detail": null,
+          "elapsed_ms": 9.59
+        },
+        {
+          "id": "E2",
+          "step": {
+            "question": "How many incidents are assigned per category?",
+            "why": "Measure a part of the business goal.",
+            "columns": [
+              "category",
+              "assigned_to"
+            ],
+            "check": "Inspect group sizes and comparison scope.",
+            "sql": "SELECT category, count(assigned_to) AS assigned FROM source_data GROUP BY category ORDER BY assigned DESC, category"
+          },
+          "status": "success",
+          "columns": [
+            "category",
+            "assigned"
+          ],
+          "rows": [
+            [
+              "Hardware",
+              336
+            ],
+            [
+              "Network",
+              51
+            ],
+            [
+              "Software",
+              41
+            ],
+            [
+              "Database",
+              40
+            ],
+            [
+              "Inquiry / Help",
+              32
+            ]
+          ],
+          "truncated": false,
+          "error": null,
+          "error_detail": null,
+          "elapsed_ms": 8.15
+        }
+      ],
+      "trace": [
+        {
+          "phase": "initial",
+          "plan": [
+            {
+              "question": "How many incidents are in each category?",
+              "why": "Measure a part of the business goal.",
+              "columns": [
+                "category"
+              ],
+              "check": "Inspect group sizes and comparison scope.",
+              "sql": "SELECT category, count(*) AS incidents FROM source_data GROUP BY category ORDER BY incidents DESC, category"
+            },
+            {
+              "question": "How many incidents are assigned per category?",
+              "why": "Measure a part of the business goal.",
+              "columns": [
+                "category",
+                "assigned_to"
+              ],
+              "check": "Inspect group sizes and comparison scope.",
+              "sql": "SELECT category, count(assigned_to) AS assigned FROM source_data GROUP BY category ORDER BY assigned DESC, category"
+            }
+          ]
+        },
+        {
+          "phase": "execute",
+          "evidence_id": "E1",
+          "error": null
+        },
+        {
+          "phase": "execute",
+          "evidence_id": "E2",
+          "error": null
+        },
+        {
+          "phase": "final",
+          "before": {
+            "sufficient": false,
+            "answered": [],
+            "gaps": [
+              "Find the discrepancy and imbalance in distribution of incidents assigned across categories"
+            ],
+            "explanations": []
+          },
+          "after": {
+            "sufficient": true,
+            "answered": [
+              {
+                "question": "How many incidents are in each category?",
+                "finding": "Computed grouped observations.",
+                "evidence": [
+                  "E1"
+                ]
+              }
+            ],
+            "gaps": [],
+            "explanations": []
+          }
+        }
+      ],
+      "insights": [
+        {
+          "statement": "Hardware has the most incidents across categories, with 336 recorded incidents.",
+          "template": "{0} has the most incidents across categories, with {1} recorded incidents.",
+          "facts": [
+            {
+              "evidence": "E1",
+              "row": 0,
+              "column": "category",
+              "value": "Hardware"
+            },
+            {
+              "evidence": "E1",
+              "row": 0,
+              "column": "incidents",
+              "value": 336
+            }
+          ],
+          "scope": "All rows in the CSV.",
+          "limitations": [],
+          "kind": "descriptive",
+          "evidence_ids": [
+            "E1"
+          ]
+        },
+        {
+          "statement": "Hardware has 336 incidents with an assigned owner.",
+          "template": "{0} has {1} incidents with an assigned owner.",
+          "facts": [
+            {
+              "evidence": "E2",
+              "row": 0,
+              "column": "category",
+              "value": "Hardware"
+            },
+            {
+              "evidence": "E2",
+              "row": 0,
+              "column": "assigned",
+              "value": 336
+            }
+          ],
+          "scope": "Category with the most incidents that have a recorded assignee.",
+          "limitations": [],
+          "kind": "descriptive",
+          "evidence_ids": [
+            "E2"
+          ]
+        }
+      ],
+      "assessment": {
+        "sufficient": true,
+        "answered": [
+          {
+            "question": "How many incidents are in each category?",
+            "finding": "Computed grouped observations.",
+            "evidence": [
+              "E1"
+            ]
+          }
+        ],
+        "gaps": [],
+        "explanations": []
+      },
+      "stop_reason": "fixed_plan_complete",
+      "error": null,
+      "elapsed_ms": 18.21,
+      "requested_model": null,
+      "actual_models": [],
+      "requests": 0,
+      "known_tokens": 0,
+      "token_usage": 0,
+      "model_attempts": [],
+      "case": "flag-1",
+      "import_ms": 513.6,
+      "execution": "offline_scripted",
+      "evidence_audit": {
+        "checked_insights": 2,
+        "passed_value_checks": 2,
+        "semantic_correctness": "requires_human_review",
+        "unanswered": [],
+        "checks": [
+          {
+            "statement": "Hardware has the most incidents across categories, with 336 recorded incidents.",
+            "evidence_ids_valid": true,
+            "result_values_match": true,
+            "numeric_cells": 1,
+            "review_flags": []
+          },
+          {
+            "statement": "Hardware has 336 incidents with an assigned owner.",
+            "evidence_ids_valid": true,
+            "result_values_match": true,
+            "numeric_cells": 1,
+            "review_flags": []
+          }
+        ]
+      },
+      "official_rouge1": 0.2599005932339266,
+      "official_score_details": {
+        "case": "flag-1",
+        "strategy": "fixed",
+        "rouge1": 0.2599005932339266,
+        "references": 6,
+        "prediction_count": 2,
+        "empty_prediction": false
+      }
+    },
+    {
+      "goal": "Find the discrepancy and imbalance in distribution of incidents assigned across categories",
+      "data_sha256": "7a262de8d6654f97c89775d8392cfd4e9f7fd8f028545cb874fcee3d2cd3278c",
+      "profile": {
+        "table": "source_data",
+        "rows": 500,
+        "columns": [
+          {
+            "name": "category",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          },
+          {
+            "name": "state",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 2
+          },
+          {
+            "name": "closed_at",
+            "type": "TIMESTAMP",
+            "kind": "temporal",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500,
+            "valid_time": 500
+          },
+          {
+            "name": "opened_at",
+            "type": "TIMESTAMP",
+            "kind": "temporal",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500,
+            "valid_time": 500
+          },
+          {
+            "name": "closed_by",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          },
+          {
+            "name": "number",
+            "type": "VARCHAR",
+            "kind": "text",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500
+          },
+          {
+            "name": "sys_updated_by",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 3
+          },
+          {
+            "name": "location",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          },
+          {
+            "name": "assigned_to",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          },
+          {
+            "name": "caller_id",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 4
+          },
+          {
+            "name": "sys_updated_on",
+            "type": "TIMESTAMP",
+            "kind": "temporal",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500,
+            "valid_time": 500
+          },
+          {
+            "name": "short_description",
+            "type": "VARCHAR",
+            "kind": "text",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 390
+          },
+          {
+            "name": "assignment_group",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          },
+          {
+            "name": "priority",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 4
+          }
+        ]
+      },
+      "strategy": "dynamic",
+      "action_budget": 3,
+      "tool_calls": 2,
+      "evidence": [
+        {
+          "id": "E1",
+          "step": {
+            "question": "How many incidents are in each category?",
+            "why": "Measure a part of the business goal.",
+            "columns": [
+              "category"
+            ],
+            "check": "Inspect group sizes and comparison scope.",
+            "sql": "SELECT category, count(*) AS incidents FROM source_data GROUP BY category ORDER BY incidents DESC, category"
+          },
+          "status": "success",
+          "columns": [
+            "category",
+            "incidents"
+          ],
+          "rows": [
+            [
+              "Hardware",
+              336
+            ],
+            [
+              "Network",
+              51
+            ],
+            [
+              "Software",
+              41
+            ],
+            [
+              "Database",
+              40
+            ],
+            [
+              "Inquiry / Help",
+              32
+            ]
+          ],
+          "truncated": false,
+          "error": null,
+          "error_detail": null,
+          "elapsed_ms": 7.76
+        },
+        {
+          "id": "E2",
+          "step": {
+            "question": "How concentrated are assignments in the largest category?",
+            "why": "Measure a part of the business goal.",
+            "columns": [
+              "category",
+              "assigned_to"
+            ],
+            "check": "Inspect group sizes and comparison scope.",
+            "sql": "SELECT category, assigned_to, count(*) AS incidents FROM source_data\n                         WHERE category = (SELECT category FROM source_data GROUP BY category ORDER BY count(*) DESC, category LIMIT 1)\n                         GROUP BY category, assigned_to ORDER BY incidents DESC, assigned_to"
+          },
+          "status": "success",
+          "columns": [
+            "category",
+            "assigned_to",
+            "incidents"
+          ],
+          "rows": [
+            [
+              "Hardware",
+              "Charlie Whitherspoon",
+              81
+            ],
+            [
+              "Hardware",
+              "Beth Anglin",
+              69
+            ],
+            [
+              "Hardware",
+              "Fred Luddy",
+              66
+            ],
+            [
+              "Hardware",
+              "Howard Johnson",
+              62
+            ],
+            [
+              "Hardware",
+              "Luke Wilson",
+              58
+            ]
+          ],
+          "truncated": false,
+          "error": null,
+          "error_detail": null,
+          "elapsed_ms": 8.99
+        }
+      ],
+      "trace": [
+        {
+          "phase": "initial",
+          "plan": [
+            {
+              "question": "How many incidents are in each category?",
+              "why": "Measure a part of the business goal.",
+              "columns": [
+                "category"
+              ],
+              "check": "Inspect group sizes and comparison scope.",
+              "sql": "SELECT category, count(*) AS incidents FROM source_data GROUP BY category ORDER BY incidents DESC, category"
+            },
+            {
+              "question": "How many incidents are assigned per category?",
+              "why": "Measure a part of the business goal.",
+              "columns": [
+                "category",
+                "assigned_to"
+              ],
+              "check": "Inspect group sizes and comparison scope.",
+              "sql": "SELECT category, count(assigned_to) AS assigned FROM source_data GROUP BY category ORDER BY assigned DESC, category"
+            }
+          ]
+        },
+        {
+          "phase": "execute",
+          "evidence_id": "E1",
+          "error": null
+        },
+        {
+          "phase": "review",
+          "through": "E1",
+          "before": {
+            "sufficient": false,
+            "answered": [],
+            "gaps": [
+              "Find the discrepancy and imbalance in distribution of incidents assigned across categories"
+            ],
+            "explanations": []
+          },
+          "after": {
+            "sufficient": false,
+            "answered": [
+              {
+                "question": "How many incidents are in each category?",
+                "finding": "Computed grouped observations.",
+                "evidence": [
+                  "E1"
+                ]
+              }
+            ],
+            "gaps": [
+              "Are assignments concentrated within the largest category?"
+            ],
+            "explanations": []
+          },
+          "next_step": {
+            "question": "How concentrated are assignments in the largest category?",
+            "why": "Measure a part of the business goal.",
+            "columns": [
+              "category",
+              "assigned_to"
+            ],
+            "check": "Inspect group sizes and comparison scope.",
+            "sql": "SELECT category, assigned_to, count(*) AS incidents FROM source_data\n                         WHERE category = (SELECT category FROM source_data GROUP BY category ORDER BY count(*) DESC, category LIMIT 1)\n                         GROUP BY category, assigned_to ORDER BY incidents DESC, assigned_to"
+          }
+        },
+        {
+          "phase": "execute",
+          "evidence_id": "E2",
+          "error": null
+        },
+        {
+          "phase": "review",
+          "through": "E2",
+          "before": {
+            "sufficient": false,
+            "answered": [
+              {
+                "question": "How many incidents are in each category?",
+                "finding": "Computed grouped observations.",
+                "evidence": [
+                  "E1"
+                ]
+              }
+            ],
+            "gaps": [
+              "Are assignments concentrated within the largest category?"
+            ],
+            "explanations": []
+          },
+          "after": {
+            "sufficient": true,
+            "answered": [
+              {
+                "question": "How many incidents are in each category?",
+                "finding": "Computed grouped observations.",
+                "evidence": [
+                  "E1"
+                ]
+              }
+            ],
+            "gaps": [],
+            "explanations": []
+          },
+          "next_step": null
+        }
+      ],
+      "insights": [
+        {
+          "statement": "Hardware has the most incidents across categories, with 336 recorded incidents.",
+          "template": "{0} has the most incidents across categories, with {1} recorded incidents.",
+          "facts": [
+            {
+              "evidence": "E1",
+              "row": 0,
+              "column": "category",
+              "value": "Hardware"
+            },
+            {
+              "evidence": "E1",
+              "row": 0,
+              "column": "incidents",
+              "value": 336
+            }
+          ],
+          "scope": "All rows in the CSV.",
+          "limitations": [],
+          "kind": "descriptive",
+          "evidence_ids": [
+            "E1"
+          ]
+        },
+        {
+          "statement": "Within Hardware, the assignee with the most incidents has 81.",
+          "template": "Within {0}, the assignee with the most incidents has {1}.",
+          "facts": [
+            {
+              "evidence": "E2",
+              "row": 0,
+              "column": "category",
+              "value": "Hardware"
+            },
+            {
+              "evidence": "E2",
+              "row": 0,
+              "column": "incidents",
+              "value": 81
+            }
+          ],
+          "scope": "Largest category only.",
+          "limitations": [],
+          "kind": "descriptive",
+          "evidence_ids": [
+            "E2"
+          ]
+        }
+      ],
+      "assessment": {
+        "sufficient": true,
+        "answered": [
+          {
+            "question": "How many incidents are in each category?",
+            "finding": "Computed grouped observations.",
+            "evidence": [
+              "E1"
+            ]
+          }
+        ],
+        "gaps": [],
+        "explanations": []
+      },
+      "stop_reason": "evidence_sufficient",
+      "error": null,
+      "elapsed_ms": 17.16,
+      "requested_model": null,
+      "actual_models": [],
+      "requests": 0,
+      "known_tokens": 0,
+      "token_usage": 0,
+      "model_attempts": [],
+      "case": "flag-1",
+      "import_ms": 513.6,
+      "execution": "offline_scripted",
+      "evidence_audit": {
+        "checked_insights": 2,
+        "passed_value_checks": 2,
+        "semantic_correctness": "requires_human_review",
+        "unanswered": [],
+        "checks": [
+          {
+            "statement": "Hardware has the most incidents across categories, with 336 recorded incidents.",
+            "evidence_ids_valid": true,
+            "result_values_match": true,
+            "numeric_cells": 1,
+            "review_flags": []
+          },
+          {
+            "statement": "Within Hardware, the assignee with the most incidents has 81.",
+            "evidence_ids_valid": true,
+            "result_values_match": true,
+            "numeric_cells": 1,
+            "review_flags": []
+          }
+        ]
+      },
+      "official_rouge1": 0.2760190321522658,
+      "official_score_details": {
+        "case": "flag-1",
+        "strategy": "dynamic",
+        "rouge1": 0.2760190321522658,
+        "references": 6,
+        "prediction_count": 2,
+        "empty_prediction": false
+      }
+    },
+    {
+      "goal": "Analyze the trend of incident resolution times and identify potential reasons for any observed patterns.",
+      "data_sha256": "585163e1f6b210f61cebac4a37c63b709c8faba60068e46fc0706a1f0c5d2cf4",
+      "profile": {
+        "table": "source_data",
+        "rows": 500,
+        "columns": [
+          {
+            "name": "caller_id",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 4
+          },
+          {
+            "name": "sys_updated_by",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 3
+          },
+          {
+            "name": "state",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 4
+          },
+          {
+            "name": "closed_at",
+            "type": "TIMESTAMP",
+            "kind": "temporal",
+            "nonnull": 372,
+            "missing_rate": 0.256,
+            "distinct": 372,
+            "valid_time": 372
+          },
+          {
+            "name": "closed_by",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 372,
+            "missing_rate": 0.256,
+            "distinct": 5
+          },
+          {
+            "name": "assigned_to",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 435,
+            "missing_rate": 0.13,
+            "distinct": 5
+          },
+          {
+            "name": "opened_at",
+            "type": "TIMESTAMP",
+            "kind": "temporal",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500,
+            "valid_time": 500
+          },
+          {
+            "name": "number",
+            "type": "VARCHAR",
+            "kind": "text",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500
+          },
+          {
+            "name": "sys_updated_on",
+            "type": "TIMESTAMP",
+            "kind": "temporal",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500,
+            "valid_time": 500
+          },
+          {
+            "name": "short_description",
+            "type": "VARCHAR",
+            "kind": "text",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 279
+          },
+          {
+            "name": "assignment_group",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 6
+          },
+          {
+            "name": "priority",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 3
+          },
+          {
+            "name": "category",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          }
+        ]
+      },
+      "strategy": "dynamic",
+      "action_budget": 3,
+      "tool_calls": 3,
+      "evidence": [
+        {
+          "id": "E1",
+          "step": {
+            "question": "How does observed resolution time vary by opening month?",
+            "why": "Measure a part of the business goal.",
+            "columns": [
+              "opened_at",
+              "closed_at"
+            ],
+            "check": "Inspect group sizes and comparison scope.",
+            "sql": "SELECT date_trunc('month', TRY_CAST(opened_at AS TIMESTAMP)) AS month, count(*) AS total, count(date_diff('second', TRY_CAST(opened_at AS TIMESTAMP), TRY_CAST(closed_at AS TIMESTAMP)) / 86400.0) AS resolved,\n                          round(avg(date_diff('second', TRY_CAST(opened_at AS TIMESTAMP), TRY_CAST(closed_at AS TIMESTAMP)) / 86400.0), 2) AS days\n                   FROM source_data GROUP BY month ORDER BY month"
+          },
+          "status": "success",
+          "columns": [
+            "month",
+            "total",
+            "resolved",
+            "days"
+          ],
+          "rows": [
+            [
+              "2023-01-01 00:00:00",
+              44,
+              44,
+              5.89
+            ],
+            [
+              "2023-02-01 00:00:00",
+              33,
+              33,
+              14.68
+            ],
+            [
+              "2023-03-01 00:00:00",
+              44,
+              44,
+              22.4
+            ],
+            [
+              "2023-04-01 00:00:00",
+              44,
+              44,
+              31.89
+            ],
+            [
+              "2023-05-01 00:00:00",
+              43,
+              43,
+              42.07
+            ],
+            [
+              "2023-06-01 00:00:00",
+              30,
+              30,
+              51.31
+            ],
+            [
+              "2023-07-01 00:00:00",
+              40,
+              40,
+              59.4
+            ],
+            [
+              "2023-08-01 00:00:00",
+              32,
+              32,
+              68.66
+            ],
+            [
+              "2023-09-01 00:00:00",
+              33,
+              33,
+              78.35
+            ],
+            [
+              "2023-10-01 00:00:00",
+              29,
+              29,
+              87.36
+            ],
+            [
+              "2023-11-01 00:00:00",
+              44,
+              0,
+              null
+            ],
+            [
+              "2023-12-01 00:00:00",
+              39,
+              0,
+              null
+            ],
+            [
+              "2024-01-01 00:00:00",
+              45,
+              0,
+              null
+            ]
+          ],
+          "truncated": false,
+          "error": null,
+          "error_detail": null,
+          "elapsed_ms": 9.4
+        },
+        {
+          "id": "E2",
+          "step": {
+            "question": "How many rows lack a usable closure timestamp?",
+            "why": "Measure a part of the business goal.",
+            "columns": [
+              "closed_at"
+            ],
+            "check": "Inspect group sizes and comparison scope.",
+            "sql": "SELECT count(*) FILTER (WHERE TRY_CAST(closed_at AS TIMESTAMP) IS NULL) AS missing,\n                          count(*) AS total FROM source_data"
+          },
+          "status": "success",
+          "columns": [
+            "missing",
+            "total"
+          ],
+          "rows": [
+            [
+              128,
+              500
+            ]
+          ],
+          "truncated": false,
+          "error": null,
+          "error_detail": null,
+          "elapsed_ms": 6.88
+        },
+        {
+          "id": "E3",
+          "step": {
+            "question": "How does observed duration vary by priority?",
+            "why": "Measure a part of the business goal.",
+            "columns": [
+              "priority",
+              "opened_at",
+              "closed_at"
+            ],
+            "check": "Inspect group sizes and comparison scope.",
+            "sql": "SELECT priority, count(*) AS total, count(date_diff('second', TRY_CAST(opened_at AS TIMESTAMP), TRY_CAST(closed_at AS TIMESTAMP)) / 86400.0) AS resolved,\n                            round(avg(date_diff('second', TRY_CAST(opened_at AS TIMESTAMP), TRY_CAST(closed_at AS TIMESTAMP)) / 86400.0), 2) AS days FROM source_data\n                     GROUP BY priority ORDER BY priority"
+          },
+          "status": "success",
+          "columns": [
+            "priority",
+            "total",
+            "resolved",
+            "days"
+          ],
+          "rows": [
+            [
+              "1 - Critical",
+              79,
+              57,
+              46.61
+            ],
+            [
+              "2 - High",
+              380,
+              283,
+              42.48
+            ],
+            [
+              "3 - Moderate",
+              41,
+              32,
+              46.69
+            ]
+          ],
+          "truncated": false,
+          "error": null,
+          "error_detail": null,
+          "elapsed_ms": 7.89
+        }
+      ],
+      "trace": [
+        {
+          "phase": "initial",
+          "plan": [
+            {
+              "question": "How does observed resolution time vary by opening month?",
+              "why": "Measure a part of the business goal.",
+              "columns": [
+                "opened_at",
+                "closed_at"
+              ],
+              "check": "Inspect group sizes and comparison scope.",
+              "sql": "SELECT date_trunc('month', TRY_CAST(opened_at AS TIMESTAMP)) AS month, count(*) AS total, count(date_diff('second', TRY_CAST(opened_at AS TIMESTAMP), TRY_CAST(closed_at AS TIMESTAMP)) / 86400.0) AS resolved,\n                          round(avg(date_diff('second', TRY_CAST(opened_at AS TIMESTAMP), TRY_CAST(closed_at AS TIMESTAMP)) / 86400.0), 2) AS days\n                   FROM source_data GROUP BY month ORDER BY month"
+            },
+            {
+              "question": "How does observed duration vary by priority?",
+              "why": "Measure a part of the business goal.",
+              "columns": [
+                "priority",
+                "opened_at",
+                "closed_at"
+              ],
+              "check": "Inspect group sizes and comparison scope.",
+              "sql": "SELECT priority, count(*) AS total, count(date_diff('second', TRY_CAST(opened_at AS TIMESTAMP), TRY_CAST(closed_at AS TIMESTAMP)) / 86400.0) AS resolved,\n                            round(avg(date_diff('second', TRY_CAST(opened_at AS TIMESTAMP), TRY_CAST(closed_at AS TIMESTAMP)) / 86400.0), 2) AS days FROM source_data\n                     GROUP BY priority ORDER BY priority"
+            }
+          ]
+        },
+        {
+          "phase": "execute",
+          "evidence_id": "E1",
+          "error": null
+        },
+        {
+          "phase": "review",
+          "through": "E1",
+          "before": {
+            "sufficient": false,
+            "answered": [],
+            "gaps": [
+              "Analyze the trend of incident resolution times and identify potential reasons for any observed patterns."
+            ],
+            "explanations": []
+          },
+          "after": {
+            "sufficient": false,
+            "answered": [
+              {
+                "question": "How does observed resolution time vary by opening month?",
+                "finding": "Computed grouped observations.",
+                "evidence": [
+                  "E1"
+                ]
+              }
+            ],
+            "gaps": [
+              "How many rows lack a usable closing time?"
+            ],
+            "explanations": []
+          },
+          "next_step": {
+            "question": "How many rows lack a usable closure timestamp?",
+            "why": "Measure a part of the business goal.",
+            "columns": [
+              "closed_at"
+            ],
+            "check": "Inspect group sizes and comparison scope.",
+            "sql": "SELECT count(*) FILTER (WHERE TRY_CAST(closed_at AS TIMESTAMP) IS NULL) AS missing,\n                          count(*) AS total FROM source_data"
+          }
+        },
+        {
+          "phase": "execute",
+          "evidence_id": "E2",
+          "error": null
+        },
+        {
+          "phase": "review",
+          "through": "E2",
+          "before": {
+            "sufficient": false,
+            "answered": [
+              {
+                "question": "How does observed resolution time vary by opening month?",
+                "finding": "Computed grouped observations.",
+                "evidence": [
+                  "E1"
+                ]
+              }
+            ],
+            "gaps": [
+              "How many rows lack a usable closing time?"
+            ],
+            "explanations": []
+          },
+          "after": {
+            "sufficient": false,
+            "answered": [
+              {
+                "question": "How does observed resolution time vary by opening month?",
+                "finding": "Computed grouped observations.",
+                "evidence": [
+                  "E1"
+                ]
+              }
+            ],
+            "gaps": [
+              "The cause of the time pattern remains unresolved."
+            ],
+            "explanations": []
+          },
+          "next_step": {
+            "question": "How does observed duration vary by priority?",
+            "why": "Measure a part of the business goal.",
+            "columns": [
+              "priority",
+              "opened_at",
+              "closed_at"
+            ],
+            "check": "Inspect group sizes and comparison scope.",
+            "sql": "SELECT priority, count(*) AS total, count(date_diff('second', TRY_CAST(opened_at AS TIMESTAMP), TRY_CAST(closed_at AS TIMESTAMP)) / 86400.0) AS resolved,\n                            round(avg(date_diff('second', TRY_CAST(opened_at AS TIMESTAMP), TRY_CAST(closed_at AS TIMESTAMP)) / 86400.0), 2) AS days FROM source_data\n                     GROUP BY priority ORDER BY priority"
+          }
+        },
+        {
+          "phase": "execute",
+          "evidence_id": "E3",
+          "error": null
+        },
+        {
+          "phase": "final",
+          "before": {
+            "sufficient": false,
+            "answered": [
+              {
+                "question": "How does observed resolution time vary by opening month?",
+                "finding": "Computed grouped observations.",
+                "evidence": [
+                  "E1"
+                ]
+              }
+            ],
+            "gaps": [
+              "The cause of the time pattern remains unresolved."
+            ],
+            "explanations": []
+          },
+          "after": {
+            "sufficient": false,
+            "answered": [
+              {
+                "question": "How does observed resolution time vary by opening month?",
+                "finding": "Computed grouped observations.",
+                "evidence": [
+                  "E1"
+                ]
+              }
+            ],
+            "gaps": [
+              "The cause of the time pattern remains unresolved."
+            ],
+            "explanations": []
+          }
+        }
+      ],
+      "insights": [
+        {
+          "statement": "Incidents opened in 2023-01-01 00:00:00 took 5.89 days on average among 44 records with valid timestamps.",
+          "template": "Incidents opened in {0} took {1} days on average among {2} records with valid timestamps.",
+          "facts": [
+            {
+              "evidence": "E1",
+              "row": 0,
+              "column": "month",
+              "value": "2023-01-01 00:00:00"
+            },
+            {
+              "evidence": "E1",
+              "row": 0,
+              "column": "days",
+              "value": 5.89
+            },
+            {
+              "evidence": "E1",
+              "row": 0,
+              "column": "resolved",
+              "value": 44
+            }
+          ],
+          "scope": "Only records with valid opening and closure times.",
+          "limitations": [
+            "Open or invalid records do not contribute to the mean."
+          ],
+          "kind": "descriptive",
+          "evidence_ids": [
+            "E1"
+          ]
+        },
+        {
+          "statement": "128 of 500 incidents lack a usable closure timestamp.",
+          "template": "{0} of {1} incidents lack a usable closure timestamp.",
+          "facts": [
+            {
+              "evidence": "E2",
+              "row": 0,
+              "column": "missing",
+              "value": 128
+            },
+            {
+              "evidence": "E2",
+              "row": 0,
+              "column": "total",
+              "value": 500
+            }
+          ],
+          "scope": "All rows in the CSV.",
+          "limitations": [],
+          "kind": "descriptive",
+          "evidence_ids": [
+            "E2"
+          ]
+        }
+      ],
+      "assessment": {
+        "sufficient": false,
+        "answered": [
+          {
+            "question": "How does observed resolution time vary by opening month?",
+            "finding": "Computed grouped observations.",
+            "evidence": [
+              "E1"
+            ]
+          }
+        ],
+        "gaps": [
+          "The cause of the time pattern remains unresolved."
+        ],
+        "explanations": []
+      },
+      "stop_reason": "action_budget",
+      "error": null,
+      "elapsed_ms": 25.08,
+      "requested_model": null,
+      "actual_models": [],
+      "requests": 0,
+      "known_tokens": 0,
+      "token_usage": 0,
+      "model_attempts": [],
+      "case": "flag-2",
+      "import_ms": 76.14,
+      "execution": "offline_scripted",
+      "evidence_audit": {
+        "checked_insights": 2,
+        "passed_value_checks": 2,
+        "semantic_correctness": "requires_human_review",
+        "unanswered": [
+          "The cause of the time pattern remains unresolved."
+        ],
+        "checks": [
+          {
+            "statement": "Incidents opened in 2023-01-01 00:00:00 took 5.89 days on average among 44 records with valid timestamps.",
+            "evidence_ids_valid": true,
+            "result_values_match": true,
+            "numeric_cells": 2,
+            "review_flags": []
+          },
+          {
+            "statement": "128 of 500 incidents lack a usable closure timestamp.",
+            "evidence_ids_valid": true,
+            "result_values_match": true,
+            "numeric_cells": 2,
+            "review_flags": []
+          }
+        ]
+      },
+      "official_rouge1": 0.13748006379585329,
+      "official_score_details": {
+        "case": "flag-2",
+        "strategy": "dynamic",
+        "rouge1": 0.13748006379585329,
+        "references": 4,
+        "prediction_count": 2,
+        "empty_prediction": false
+      }
+    },
+    {
+      "goal": "Analyze the trend of incident resolution times and identify potential reasons for any observed patterns.",
+      "data_sha256": "585163e1f6b210f61cebac4a37c63b709c8faba60068e46fc0706a1f0c5d2cf4",
+      "profile": {
+        "table": "source_data",
+        "rows": 500,
+        "columns": [
+          {
+            "name": "caller_id",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 4
+          },
+          {
+            "name": "sys_updated_by",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 3
+          },
+          {
+            "name": "state",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 4
+          },
+          {
+            "name": "closed_at",
+            "type": "TIMESTAMP",
+            "kind": "temporal",
+            "nonnull": 372,
+            "missing_rate": 0.256,
+            "distinct": 372,
+            "valid_time": 372
+          },
+          {
+            "name": "closed_by",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 372,
+            "missing_rate": 0.256,
+            "distinct": 5
+          },
+          {
+            "name": "assigned_to",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 435,
+            "missing_rate": 0.13,
+            "distinct": 5
+          },
+          {
+            "name": "opened_at",
+            "type": "TIMESTAMP",
+            "kind": "temporal",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500,
+            "valid_time": 500
+          },
+          {
+            "name": "number",
+            "type": "VARCHAR",
+            "kind": "text",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500
+          },
+          {
+            "name": "sys_updated_on",
+            "type": "TIMESTAMP",
+            "kind": "temporal",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 500,
+            "valid_time": 500
+          },
+          {
+            "name": "short_description",
+            "type": "VARCHAR",
+            "kind": "text",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 279
+          },
+          {
+            "name": "assignment_group",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 6
+          },
+          {
+            "name": "priority",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 3
+          },
+          {
+            "name": "category",
+            "type": "VARCHAR",
+            "kind": "category",
+            "nonnull": 500,
+            "missing_rate": 0.0,
+            "distinct": 5
+          }
+        ]
+      },
+      "strategy": "fixed",
+      "action_budget": 3,
+      "tool_calls": 2,
+      "evidence": [
+        {
+          "id": "E1",
+          "step": {
+            "question": "How does observed resolution time vary by opening month?",
+            "why": "Measure a part of the business goal.",
+            "columns": [
+              "opened_at",
+              "closed_at"
+            ],
+            "check": "Inspect group sizes and comparison scope.",
+            "sql": "SELECT date_trunc('month', TRY_CAST(opened_at AS TIMESTAMP)) AS month, count(*) AS total, count(date_diff('second', TRY_CAST(opened_at AS TIMESTAMP), TRY_CAST(closed_at AS TIMESTAMP)) / 86400.0) AS resolved,\n                          round(avg(date_diff('second', TRY_CAST(opened_at AS TIMESTAMP), TRY_CAST(closed_at AS TIMESTAMP)) / 86400.0), 2) AS days\n                   FROM source_data GROUP BY month ORDER BY month"
+          },
+          "status": "success",
+          "columns": [
+            "month",
+            "total",
+            "resolved",
+            "days"
+          ],
+          "rows": [
+            [
+              "2023-01-01 00:00:00",
+              44,
+              44,
+              5.89
+            ],
+            [
+              "2023-02-01 00:00:00",
+              33,
+              33,
+              14.68
+            ],
+            [
+              "2023-03-01 00:00:00",
+              44,
+              44,
+              22.4
+            ],
+            [
+              "2023-04-01 00:00:00",
+              44,
+              44,
+              31.89
+            ],
+            [
+              "2023-05-01 00:00:00",
+              43,
+              43,
+              42.07
+            ],
+            [
+              "2023-06-01 00:00:00",
+              30,
+              30,
+              51.31
+            ],
+            [
+              "2023-07-01 00:00:00",
+              40,
+              40,
+              59.4
+            ],
+            [
+              "2023-08-01 00:00:00",
+              32,
+              32,
+              68.66
+            ],
+            [
+              "2023-09-01 00:00:00",
+              33,
+              33,
+              78.35
+            ],
+            [
+              "2023-10-01 00:00:00",
+              29,
+              29,
+              87.36
+            ],
+            [
+              "2023-11-01 00:00:00",
+              44,
+              0,
+              null
+            ],
+            [
+              "2023-12-01 00:00:00",
+              39,
+              0,
+              null
+            ],
+            [
+              "2024-01-01 00:00:00",
+              45,
+              0,
+              null
+            ]
+          ],
+          "truncated": false,
+          "error": null,
+          "error_detail": null,
+          "elapsed_ms": 8.62
+        },
+        {
+          "id": "E2",
+          "step": {
+            "question": "How does observed duration vary by priority?",
+            "why": "Measure a part of the business goal.",
+            "columns": [
+              "priority",
+              "opened_at",
+              "closed_at"
+            ],
+            "check": "Inspect group sizes and comparison scope.",
+            "sql": "SELECT priority, count(*) AS total, count(date_diff('second', TRY_CAST(opened_at AS TIMESTAMP), TRY_CAST(closed_at AS TIMESTAMP)) / 86400.0) AS resolved,\n                            round(avg(date_diff('second', TRY_CAST(opened_at AS TIMESTAMP), TRY_CAST(closed_at AS TIMESTAMP)) / 86400.0), 2) AS days FROM source_data\n                     GROUP BY priority ORDER BY priority"
+          },
+          "status": "success",
+          "columns": [
+            "priority",
+            "total",
+            "resolved",
+            "days"
+          ],
+          "rows": [
+            [
+              "1 - Critical",
+              79,
+              57,
+              46.61
+            ],
+            [
+              "2 - High",
+              380,
+              283,
+              42.48
+            ],
+            [
+              "3 - Moderate",
+              41,
+              32,
+              46.69
+            ]
+          ],
+          "truncated": false,
+          "error": null,
+          "error_detail": null,
+          "elapsed_ms": 8.38
+        }
+      ],
+      "trace": [
+        {
+          "phase": "initial",
+          "plan": [
+            {
+              "question": "How does observed resolution time vary by opening month?",
+              "why": "Measure a part of the business goal.",
+              "columns": [
+                "opened_at",
+                "closed_at"
+              ],
+              "check": "Inspect group sizes and comparison scope.",
+              "sql": "SELECT date_trunc('month', TRY_CAST(opened_at AS TIMESTAMP)) AS month, count(*) AS total, count(date_diff('second', TRY_CAST(opened_at AS TIMESTAMP), TRY_CAST(closed_at AS TIMESTAMP)) / 86400.0) AS resolved,\n                          round(avg(date_diff('second', TRY_CAST(opened_at AS TIMESTAMP), TRY_CAST(closed_at AS TIMESTAMP)) / 86400.0), 2) AS days\n                   FROM source_data GROUP BY month ORDER BY month"
+            },
+            {
+              "question": "How does observed duration vary by priority?",
+              "why": "Measure a part of the business goal.",
+              "columns": [
+                "priority",
+                "opened_at",
+                "closed_at"
+              ],
+              "check": "Inspect group sizes and comparison scope.",
+              "sql": "SELECT priority, count(*) AS total, count(date_diff('second', TRY_CAST(opened_at AS TIMESTAMP), TRY_CAST(closed_at AS TIMESTAMP)) / 86400.0) AS resolved,\n                            round(avg(date_diff('second', TRY_CAST(opened_at AS TIMESTAMP), TRY_CAST(closed_at AS TIMESTAMP)) / 86400.0), 2) AS days FROM source_data\n                     GROUP BY priority ORDER BY priority"
+            }
+          ]
+        },
+        {
+          "phase": "execute",
+          "evidence_id": "E1",
+          "error": null
+        },
+        {
+          "phase": "execute",
+          "evidence_id": "E2",
+          "error": null
+        },
+        {
+          "phase": "final",
+          "before": {
+            "sufficient": false,
+            "answered": [],
+            "gaps": [
+              "Analyze the trend of incident resolution times and identify potential reasons for any observed patterns."
+            ],
+            "explanations": []
+          },
+          "after": {
+            "sufficient": false,
+            "answered": [
+              {
+                "question": "How does observed resolution time vary by opening month?",
+                "finding": "Computed grouped observations.",
+                "evidence": [
+                  "E1"
+                ]
+              }
+            ],
+            "gaps": [
+              "The cause of the time pattern remains unresolved."
+            ],
+            "explanations": []
+          }
+        }
+      ],
+      "insights": [
+        {
+          "statement": "Incidents opened in 2023-01-01 00:00:00 took 5.89 days on average among 44 records with valid timestamps.",
+          "template": "Incidents opened in {0} took {1} days on average among {2} records with valid timestamps.",
+          "facts": [
+            {
+              "evidence": "E1",
+              "row": 0,
+              "column": "month",
+              "value": "2023-01-01 00:00:00"
+            },
+            {
+              "evidence": "E1",
+              "row": 0,
+              "column": "days",
+              "value": 5.89
+            },
+            {
+              "evidence": "E1",
+              "row": 0,
+              "column": "resolved",
+              "value": 44
+            }
+          ],
+          "scope": "Only records with valid opening and closure times.",
+          "limitations": [
+            "Open or invalid records do not contribute to the mean."
+          ],
+          "kind": "descriptive",
+          "evidence_ids": [
+            "E1"
+          ]
+        },
+        {
+          "statement": "Priority 1 - Critical incidents average 46.61 days among 57 records with usable timestamps.",
+          "template": "Priority {0} incidents average {1} days among {2} records with usable timestamps.",
+          "facts": [
+            {
+              "evidence": "E2",
+              "row": 0,
+              "column": "priority",
+              "value": "1 - Critical"
+            },
+            {
+              "evidence": "E2",
+              "row": 0,
+              "column": "days",
+              "value": 46.61
+            },
+            {
+              "evidence": "E2",
+              "row": 0,
+              "column": "resolved",
+              "value": 57
+            }
+          ],
+          "scope": "First listed priority.",
+          "limitations": [],
+          "kind": "descriptive",
+          "evidence_ids": [
+            "E2"
+          ]
+        }
+      ],
+      "assessment": {
+        "sufficient": false,
+        "answered": [
+          {
+            "question": "How does observed resolution time vary by opening month?",
+            "finding": "Computed grouped observations.",
+            "evidence": [
+              "E1"
+            ]
+          }
+        ],
+        "gaps": [
+          "The cause of the time pattern remains unresolved."
+        ],
+        "explanations": []
+      },
+      "stop_reason": "fixed_plan_complete",
+      "error": null,
+      "elapsed_ms": 17.51,
+      "requested_model": null,
+      "actual_models": [],
+      "requests": 0,
+      "known_tokens": 0,
+      "token_usage": 0,
+      "model_attempts": [],
+      "case": "flag-2",
+      "import_ms": 76.14,
+      "execution": "offline_scripted",
+      "evidence_audit": {
+        "checked_insights": 2,
+        "passed_value_checks": 2,
+        "semantic_correctness": "requires_human_review",
+        "unanswered": [
+          "The cause of the time pattern remains unresolved."
+        ],
+        "checks": [
+          {
+            "statement": "Incidents opened in 2023-01-01 00:00:00 took 5.89 days on average among 44 records with valid timestamps.",
+            "evidence_ids_valid": true,
+            "result_values_match": true,
+            "numeric_cells": 2,
+            "review_flags": []
+          },
+          {
+            "statement": "Priority 1 - Critical incidents average 46.61 days among 57 records with usable timestamps.",
+            "evidence_ids_valid": true,
+            "result_values_match": true,
+            "numeric_cells": 2,
+            "review_flags": []
+          }
+        ]
+      },
+      "official_rouge1": 0.05601851851851852,
+      "official_score_details": {
+        "case": "flag-2",
+        "strategy": "fixed",
+        "rouge1": 0.05601851851851852,
+        "references": 4,
+        "prediction_count": 2,
+        "empty_prediction": false
+      }
+    }
+  ],
+  "scoring": {
+    "implementation": "insightbench_upstream_rouge1_compat",
+    "upstream_revision": "33c27c1282cb7ed73267d36fb84e27b6ea8aac2b",
+    "entry_point": "insightbench.benchmarks.evaluate_insights",
+    "rouge_score_version": "0.1.2",
+    "numpy_version": "2.2.6",
+    "compatibility": "Pinned upstream functions with local singleton HF ROUGE backend; empty predicts score zero."
+  },
+  "comparisons": {
+    "flag-2": {
+      "same_actual_model": false,
+      "dynamic_only_statements": [
+        "128 of 500 incidents lack a usable closure timestamp."
+      ]
+    },
+    "flag-1": {
+      "same_actual_model": false,
+      "dynamic_only_statements": [
+        "Within Hardware, the assignee with the most incidents has 81."
+      ]
+    }
+  }
+}

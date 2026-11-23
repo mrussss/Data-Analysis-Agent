@@ -1,0 +1,2 @@
+numpy==2.2.6
+rouge-score==0.1.2
