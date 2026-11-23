@@ -163,7 +163,6 @@ DEV = (
 )
 TEST = OLIST_TEST + RETAIL_TEST
 ONLINE_PAIRS = ("category_gmv", "ratings_by_delivery", "recall_scope", "after_onset", "stock_vs_bad_press")
-ONLINE_DEV = ("dev_campaign",)
 
 
 def build_retail(case: Case, target):

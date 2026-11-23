@@ -1119,6 +1119,9 @@ def test_provider_passes_prompt_model_and_json_output() -> None:
                 }
             ],
             "response_format": {"type": "json_object"},
+            "max_tokens": 3072,
+            "reasoning_effort": "low",
+            "extra_body": {"thinking": {"type": "enabled"}},
         }
     ]
     assert DEEPSEEK_MODEL == "deepseek-v4-flash"
@@ -1131,7 +1134,8 @@ def test_provider_uses_official_base_url(
     constructor_arguments: dict[str, str] = {}
 
     class FakeOpenAI:
-        def __init__(self, *, api_key: str, base_url: str):
+        def __init__(self, *, api_key: str, base_url: str, max_retries: int):
+            assert max_retries == 0
             constructor_arguments.update(api_key=api_key, base_url=base_url)
 
     monkeypatch.setenv("DEEPSEEK_API_KEY", "unit-test-placeholder")
@@ -1637,5 +1641,5 @@ def test_second_request_preserves_assistant_tool_call_and_adds_tool_result(
     assert json.loads(messages[3]["content"]) == _successful_sql_result()
     assert second_request["tool_choice"] == "none"
     assert second_request["extra_body"] == {
-        "thinking": {"type": "disabled"}
+        "thinking": {"type": "enabled"}
     }

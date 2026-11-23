@@ -7,7 +7,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-from data_analysis_agent.deepseek_provider import DEEPSEEK_MODEL
+from data_analysis_agent.deepseek_provider import DEEPSEEK_MODEL, low_reasoning
 from data_analysis_agent.integration_tools import (
     JSONDict,
     inspect_schema_tool,
@@ -38,7 +38,6 @@ RUN_READONLY_SQL_TOOL = {
     },
 }
 FUNCTION_TOOLS = [RUN_READONLY_SQL_TOOL]
-THINKING_DISABLED = {"thinking": {"type": "disabled"}}
 
 
 class FunctionCallingProtocolError(ValueError):
@@ -101,7 +100,7 @@ def run_function_calling_spike(
         messages=messages,
         tools=FUNCTION_TOOLS,
         tool_choice="required",
-        extra_body=THINKING_DISABLED,
+        max_tokens=3072, **low_reasoning(model),
     )
     choice, assistant_message = _first_choice(first_response)
     finish_reason = getattr(choice, "finish_reason", None)
@@ -149,7 +148,7 @@ def run_function_calling_spike(
         messages=messages,
         tools=FUNCTION_TOOLS,
         tool_choice="none",
-        extra_body=THINKING_DISABLED,
+        max_tokens=3072, **low_reasoning(model),
     )
     _, final_message = _first_choice(second_response)
     final_text = getattr(final_message, "content", None)

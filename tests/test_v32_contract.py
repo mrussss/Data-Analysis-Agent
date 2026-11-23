@@ -135,6 +135,7 @@ def test_online_budget_counts_attempts_stops_on_limit_and_uses_default(monkeypat
         assert kwargs["max_retries"] == 0
         return SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=completions)))
 
+    monkeypatch.setenv("LLM_ROUTE_ORDER", "")
     monkeypatch.setenv("OPENAI_API_KEY", "unit-test")
     monkeypatch.setenv("OPENAI_MODEL", "model-for-testing")
     monkeypatch.setenv("OPENAI_BASE_URL", "")

@@ -22,7 +22,7 @@ python -m pytest
 
 问数接受 `<metric> from <start> to <end> [where field=value [and field=value]] [by day|month]`。日期左闭右开。Olist 支持订单数、三种金额口径（商品成交额、含运费成交额和支付额）、每单平均商品数、平均配送时长、晚到率。过滤字段为 `state`、`weekday`（周一为 1）、`status`。晚到按实际送达时间与预估送达时间比较，只纳入两个时间都有记录的订单。Bike 支持 `rentals`、`average_hourly_rentals`，可按 `workingday`、`weather` 或 `season` 调查。超出支持范围的问数会明确拒答。
 
-离线是默认路径。可用 `OPENAI_API_KEY`、`OPENAI_MODEL`、可选 `OPENAI_BASE_URL` 加 `--online` 复跑。每次 CLI 运行共享请求与 token 预算，默认上限分别为 60 与 250,000，SDK 自动重试关闭。用量未知会停止继续调用，预算中断的任务保留 Trace 并排除出配对汇总。下方命令可复跑一次限额内的在线配对。线上失败或用量未知时保留失败记录。
+离线是默认路径。可用 `OPENAI_API_KEY`、`OPENAI_MODEL`、可选 `OPENAI_BASE_URL` 加 `--online` 复跑。每次 CLI 运行共享请求与 token 预算，默认上限分别为 60 与 250,000，SDK 自动重试关闭。预算内仅对临时网络故障、超时、429 和 5xx 按退避重试至多两次。每次尝试均占请求名额，可能已送达而用量未知时保留预留额度。成功响应缺少用量时停止。
 
 ## Mode B 业务调查
 
@@ -66,40 +66,59 @@ C/D 每题按源码生成 28 日、168 行的 SKU／区域／对照面板及对�
 
 召回题的 Rule-Adaptive Trace 中，E1 发现两期销量由 2,800 降至 2,016。E2 找到仅针对 core 的虚构召回记录，E3 将销量缺口定位到 core，E4 将预排的全店库存查询替换为 core 库存查询，测得可用率仍为 100%，E5 核查投诉率上升。这条记录展示了外部证据如何改变实际 SQL 调查。证据支持保留召回作为候选解释。
 
-### 真实模型试跑与续跑
+### 真实模型对照
 
-| 阶段 | 策略 | 样本 | 完成 | 请求 | 已计量 Token／美元 | 延迟 |
-| --- | --- | ---: | ---: | ---: | --- | ---: |
-| 开发集 C | LLM-Frozen | 1 次尝试 | 0/1 | 1 | 未返回／未知 | 335.95 ms |
-| 开发集 C | LLM-Adaptive | 0 | — | 0 | — | — |
-| 冻结集 A–D | LLM-Frozen | 0 | — | 0 | — | — |
-| 冻结集 A–D | LLM-Adaptive | 0 | — | 0 | — | — |
+DeepSeek 请求统一启用思考并设置 `reasoning_effort=low`。业务决策和报告最多 3,072 个输出 token。动作提示列明当前可用工具和 Evidence ID，模型必须复制合法工具 ID。每个调查最多额外纠正两次 JSON 格式、恢复一次明确截断。动作语义仍按原校验，最多另给一次动作纠正。Trace 保留脱敏动作、错误类别、各次恢复调用和用量。模型可在停止时一并提交报告，所引用的证据仍由原评分器核查。两组共用动作预算和评分。如果两组用到不同模型版本，或同一组混用版本，保留原始记录并排除该题的公平配对成绩。 [DeepSeek 官方思考模式说明](https://api-docs.deepseek.com/guides/thinking_mode/)
 
-配置的 OpenAI 兼容网关在首个真实请求上返回 `APIConnectionError`，没有 HTTP 状态、模型输出或用量。当前环境也未解析到该网关域名。SDK 自动重试关闭，未知用量触发停止。新任务没有真实的跨来源模型 Trace 或任何可计分的在线配对。旧实验的真实 Trace 使用 SQL 证据，仍可在旧报告复查。 [本轮在线失败 Trace](evaluation/business_online_dev.json) · [旧在线 Trace](evaluation/mode_b_reliability.json)
+更早的历史试跑有未核对用量，仍保留在各自的 Trace。首次协议评测单独记账，后续 D 类和可靠性复测接续该账本。新 Low 探针在 VX Flash 返回合法 JSON，消耗 88 token，观察到推理内容。网关没有回报实际推理等级。 [历史开发集 Trace](evaluation/business_online_dev_wsl.json) · [本轮开发集 Trace](evaluation/business_online_dev_protocol.json)
 
-现有证据支持在结构化数据、较小动作空间和清楚的诊断信号下优先使用确定性策略。Rule-Adaptive 的路径变化来自事件范围触发条件下钻，Fixed Workflow 的全量库存证据也足以回答本题。LLM 的增量价值仍待验证。当前事件档案很小，合成面板噪声低，Olist 月窗口长短不完全一致，B 类问题多给出检查方向，公开题库可能被后续模型或提示熟悉。后续实验优先复跑预选配对，再用更少提示和更加含混的候选证据测试选工具的收益。
+开发集四题均完成两组真实模型运行，所有响应均通过动作和结论格式校验。Frozen 答对 3/4，Adaptive 答对 2/4。Adaptive 的促销题核实了实付价格和促销占比，却少查了公开事件。两组在事后事件题都查到事件晚于销量下跌并拒绝归因，但都漏引销量下降这条必答证据。开发集含探针共 19 次请求、47,875 个已计量 token。由此验证规划和执行协议可以进入冻结配对，独立评分保留上述失分。
+
+冻结集依序完成 A、B、C 三道同模型配对。各模型响应均由 VX Flash 提供，未观察到模型版本混用。C 题的 Adaptive 响应以 `length` 结束，计为该组失败。该次请求的输出上限为 3,072 token，VX 回报 6,042 个 completion token。进入 D 类题时剩余 5 次请求，低于预先设定的 7 次完整配对启动额度，因此两道 D 题保留为未运行。 [冻结集逐案 Trace](evaluation/business_online_test_protocol.json)
+
+| 策略 | 答对 | 完成报告 | 调查动作 | 已计量 Token | 总耗时 | 错误归因 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Fixed Workflow | 3/3 | 3/3 | 11 | 0 | 0.42 秒 | 0 |
+| Rule-Adaptive | 3/3 | 3/3 | 11 | 0 | 0.33 秒 | 0 |
+| LLM-Frozen | 2/3 | 3/3 | 11 | 19,455 | 144.01 秒 | 0 |
+| LLM-Adaptive | 1/3 | 2/3 | 8 | 32,937 | 146.14 秒 | 0 |
+
+本轮合计 35 次请求、100,267 个已计量 token，全部有用量记录。Adaptive 的 B 题只查了晚到组与准时组的评价差异，漏掉两期晚到率和差评率各自的变化。C 题第一步按 SKU 定位销量缺口，接着核实目标 SKU 在两期均有货，最后查到针对同一 SKU、日期吻合的召回通知。这个路径确实使用了新证据，但库存证据反驳缺货假设前，模型没有留下可比较的后续计划，严格反证重规划为零。Rule-Adaptive 已能拿齐这些证据及投诉率，当前样本没有观察到模型的净收益。
+
+离线将原题原样压到三次动作后，Fixed Workflow 和 Rule-Adaptive 均从 30/30 降到 24/30，其中 A 8/8、B 7/8、C 3/8、D 6/6。五次预算下每组只有五题用满。14 道引用本地档案的题中，12 题各有一条记录，1 题有两条，1 题为空。题面经常点明应查指标或来源，所需证据通常可以提前确定。
+
+### D 类续跑与独立召回复测
+
+最初被截断的召回请求已经使用 3,072 的上限。其返回正文为空，结束原因为 `length`，VX 回报 6,042 个 completion token。这个记录无法区分推理占用和网关计量方式。续跑维持上限，缩短协议与报告输入，并独立计量每次恢复。
+
+两道预选 D 类题均完成同模型首次配对，两组规则均答对，两组模型各答对 1/2。在缺货题中，Adaptive 从单位投诉率稳定转查库存，发现销量降幅集中在已缺货 SKU，再核实同期报道。它以 4 次动作答对，Frozen 用了 5 次但漏查报道。两组规则同样用 4 次动作答对。时间错配题的 Adaptive 查齐证据，正文也拒绝了事后事件解释，但输出 `association`，原评分要求 `insufficient`。 [D 类首次配对](evaluation/business_online_test_d.json)
+
+| 策略 | 首次冻结答对 | 首次完成报告 | 首次调查动作 | 首次 Token | 首次总耗时 | 召回复测答对 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Fixed Workflow | 5/5 | 5/5 | 19 | 0 | 0.49 秒 | 1/1 |
+| Rule-Adaptive | 5/5 | 5/5 | 19 | 0 | 0.41 秒 | 1/1 |
+| LLM-Frozen | 3/5 | 5/5 | 21 | 34,301 | 258.34 秒 | 0/1 |
+| LLM-Adaptive | 2/5 | 4/5 | 15 | 62,420 | 333.06 秒 | 0/1 |
+
+首次冻结合计覆盖 A、B、C 和两道 D，A–C 沿用恢复机制调整前的首次结果。召回复测单独记录。两组模型都完成报告，但均未用工具核实销量实际集中下降的 SKU。D 类与复测新增 22 次请求、76,388 个已计量 token。22 次中没有 JSON 解析错误，发生 4 次明确截断，均在一次恢复后取得合法输出。4 次恢复请求消耗 6,457 token，4 个被截断的原始请求消耗 28,984 token。所有配对仍使用 VX Flash。续跑后的累计为 57 次请求、176,655 个已计量 token。 [召回复测](evaluation/business_online_reliability_retest.json)
+
+当前续跑沿用此前两份账本的 35 次请求和 100,267 个已计量 token。整轮上限为 80 次实际请求和 260,000 个已计量 token，每题 5 次工具动作。环境变量 `MAX_LLM_REQUESTS`、`MAX_LLM_TOTAL_TOKENS` 可以调低整轮上限。每次出站请求先写入 `data/processed/.business_online_usage.json`，响应返回后按实际用量结算。未返回用量则保留预留。该文件是同一工作区跨命令的预算记录，续跑时保留它。重复传入历史结果会去重。旧轮未知用量留在旧记录中。
+
+首次冻结续跑默认跳过已经尝试的题。复跑召回题需要显式标为可靠性复测并使用新输出路径。两类结果均保留逐案 Trace。下方命令对应 D 类首次配对和独立标记的召回复测。再次续跑时应选择新的输出文件。
 
 ```bash
-python -m scripts.prepare_data olist
-python -m data_analysis_agent eval --business --output evaluation/business_offline.json
-python -m data_analysis_agent eval --business --split dev --output evaluation/business_offline_dev.json
-python -m data_analysis_agent investigate --business --entity health_beauty \
-  --before 2018-03-01 2018-04-01 --current 2018-04-01 2018-05-01 --budget 5 \
-  'Compare complaints with late delivery and check late and on-time groups.'
-python -m pytest
-```
-
-网关恢复后，新的一轮先跑开发集，再把实际用量扣除后运行预定冻结配对。每轮最多 40 请求和 160,000 已计量 token。未知用量会阻止原轮续跑，需先用网关用量记录核对并保留原失败 Trace。可以把已核对的历史账本通过多个 `--prior-results` 累计扣除。费用只在提供方明确返回 USD 时记录。
-
-```bash
-python -m data_analysis_agent eval --business --split dev --online \
-  --output evaluation/business_online_dev_replay.json
 python -m data_analysis_agent eval --business --online \
-  --prior-results evaluation/business_online_dev_replay.json \
-  --output evaluation/business_online_test_replay.json
+  --prior-results evaluation/business_online_dev_protocol.json \
+  --prior-results evaluation/business_online_test_protocol.json \
+  --output evaluation/business_online_test_d.json
+python -m data_analysis_agent eval --business --online --reliability-retest --case recall_scope \
+  --prior-results evaluation/business_online_dev_protocol.json \
+  --prior-results evaluation/business_online_test_protocol.json \
+  --prior-results evaluation/business_online_test_d.json \
+  --output evaluation/business_online_reliability_retest.json
 ```
 
-[工具及 SQL](src/data_analysis_agent/business_tools.py) · [策略与结论协议](src/data_analysis_agent/business_investigation.py) · [数据生成与题库](src/data_analysis_agent/business_cases.py) · [评分与预算内配对](src/data_analysis_agent/business_benchmark.py)
+[工具与 SQL](src/data_analysis_agent/business_tools.py) · [策略与结论协议](src/data_analysis_agent/business_investigation.py) · [数据生成与题库](src/data_analysis_agent/business_cases.py) · [评分与在线配对](src/data_analysis_agent/business_benchmark.py)
 
 ## Mode B 晚到率实验（历史）
 
