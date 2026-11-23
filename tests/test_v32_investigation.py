@@ -608,3 +608,38 @@ def test_business_budget_imports_distinct_history_once_and_survives_interruption
         assert (second.max_requests, second.max_tokens) == (44, 151_733)
         assert state["usage"]["unknown_usage_requests"] == 1
         assert state["usage"]["reserved_unknown_tokens"] == 8_000
+
+
+def test_deep_scores_collection_and_report_independently(tmp_path):
+    from data_analysis_agent.business_benchmark import score_deep
+    from data_analysis_agent.business_cases import DEEP_TEST, build_retail
+
+    case = DEEP_TEST[4]  # A correctly identified public event follows the measured break.
+    database = tmp_path / "observed.duckdb"
+    events = build_retail(case, database)
+    state = investigate((database, database), case.goal, policy="rule_adaptive", budget=5, events=events)
+    score = score_deep(state, case)
+    assert score["evidence_complete"] and score["judgment_correct"] and score["correct"]
+    assert score["counterevidence_found"] and score["decisive_action"] == 5
+
+    state.claims = []
+    score = score_deep(state, case)
+    assert score["evidence_complete"] and score["judgment_correct"] and not score["correct"]
+    state.verdict = "causal"
+    score = score_deep(state, case)
+    assert score["evidence_complete"] and not score["judgment_correct"] and score["wrong_attribution"]
+
+
+def test_deep_missing_data_is_observed_but_missing_tool_is_not(tmp_path):
+    from data_analysis_agent.business_benchmark import score_deep
+    from data_analysis_agent.business_cases import DEEP_TEST, build_retail
+
+    case = DEEP_TEST[6]
+    database = tmp_path / "observed.duckdb"
+    events = build_retail(case, database)
+    full = investigate((database, database), case.goal, policy="rule_adaptive", budget=5, events=events)
+    short = investigate((database, database), case.goal, policy="rule_adaptive", budget=3, events=events)
+    assert score_deep(full, case)["correct"]
+    score = score_deep(short, case)
+    assert not score["evidence_complete"] and score["judgment_correct"] and not score["correct"]
+    assert score["missing_evidence"] == ["shelf_core_north:availability=missing"]

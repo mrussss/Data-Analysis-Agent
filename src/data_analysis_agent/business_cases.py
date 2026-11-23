@@ -10,7 +10,7 @@ from datetime import date, timedelta
 
 import duckdb
 
-from .business_tools import BusinessGoal
+from .business_tools import BusinessGoal, DeepRetailGoal
 
 
 @dataclass(frozen=True)
@@ -165,7 +165,7 @@ TEST = OLIST_TEST + RETAIL_TEST
 ONLINE_PAIRS = ("category_gmv", "ratings_by_delivery", "recall_scope", "after_onset", "stock_vs_bad_press")
 
 
-def build_retail(case: Case, target):
+def build_retail(case: Case, target, *, apply_changes=True):
     """Create a per-case panel and return only the public event records."""
     rows = []
     for day in range(-14, 14):
@@ -173,7 +173,7 @@ def build_retail(case: Case, target):
         for region in ("north", "south"):
             for sku in ("core", "plus"):
                 values = dict(units=50, price=100, promo=0, available=1, visits=100, complaints=1, late=2)
-                for field, start, item, area, value in case.changes:
+                for field, start, item, area, value in case.changes if apply_changes else ():
                     if day >= start and item in ("*", sku) and area in ("*", region):
                         values[field] = value
                 if not values["units"]:
@@ -191,3 +191,101 @@ def build_retail(case: Case, target):
                      "scope": scope, "text": text, "source": "fictional benchmark archive"}
                     for id, subject, offset, scope, text in case.events)
     return records
+
+
+
+@dataclass(frozen=True)
+class DeepCase(Case):
+    alternatives: tuple[tuple[str, str], ...] = ()
+    counterevidence: tuple[str, ...] = ()
+
+
+def deep(id, kind, entity, verdict, findings, changes, events=(), *, alternatives=(), counterevidence=()):
+    question = (f"{entity} sold fewer units in the latest fortnight. Investigate where the decline is concentrated, "
+                "weigh the most relevant explanations, and report what the available evidence can establish.")
+    routine = (
+        ("bulletin", entity, -5, "all", "The retailer posted updated office opening hours."),
+        ("digest", entity + " Partners", 1, "all", "A regional trade roundup discusses retailers' social campaigns."),
+        ("calendar", entity, -8, "all", "A conference organizer listed a later trade fair date."),
+    )
+    goal = DeepRetailGoal(question, "retail", (ANCHOR - DAYS, ANCHOR), (ANCHOR, ANCHOR + DAYS), entity, "units")
+    return DeepCase(id, kind, goal, verdict, ("headline:units=down", *findings.split()),
+                    events + routine, changes, alternatives, tuple(counterevidence.split()) if counterevidence else ())
+
+
+DEEP_TEST = (
+    deep("deep_01", "A", "Lark Basin", "observed_constraint",
+         "scope:cell=core_north stock:stockout_sales_loss=present events:article=wrong_subject",
+         (("units", 0, "core", "north", 0), ("available", 0, "core", "north", 0),
+          ("units", 0, "plus", "south", 43), ("price", 0, "plus", "south", 124),
+          ("complaints", 0, "plus", "south", 3)),
+         (("article", "Lark Basin Outlet", 0, "core", "A newspaper covers an adverse customer interview."),
+          ("memo", "Lark Basin", -1, "core_north", "A distributor posts revised allocation dates for regional orders.")),
+         alternatives=(("stock:stockout_sales_loss=present", "shelf_core_north:stockout_sales_loss=present"),),
+         counterevidence="events:article=wrong_subject"),
+    deep("deep_02", "A", "Juniper Quay", "association",
+         "scope:cell=plus_south offer_plus_south:price=up access_plus_south:visits=stable",
+         (("units", 0, "plus", "south", 23), ("price", 0, "plus", "south", 135),
+          ("complaints", 0, "core", "north", 3)),
+         (("circular", "Juniper Quay", 0, "plus_south", "A pricing circular lists revised checkout prices."),
+          ("advert", "Juniper Quay Partners", 0, "all", "An advert announces an upcoming competitor promotion.")),
+         counterevidence="access_plus_south:visits=stable"),
+    deep("deep_03", "B", "Satin Reach", "association",
+         "scope:cell=core_south access_core_south:visits=down access_core_south:conversion=stable",
+         (("units", 0, "core", "south", 20), ("visits", 0, "core", "south", 40),
+          ("price", 0, "plus", "north", 125), ("units", 0, "plus", "north", 46)),
+         (("notice", "Satin Reach", -1, "core_south", "A marketplace lists a regional update to catalog access."),
+          ("counter", "Satin Reach Partners", 0, "plus", "A local seller advertises a checkout discount.")),
+         counterevidence="access_core_south:conversion=stable"),
+    deep("deep_04", "B", "Cairn Thread", "observed_constraint",
+         "scope:cell=plus_north shelf_plus_north:no_sales_when_unavailable=present access_plus_north:visits=stable",
+         (("units", 6, "plus", "north", 0), ("available", 6, "plus", "north", 0),
+          ("visits", 0, "core", "south", 85)),
+         (("update", "Cairn Thread", 3, "plus_north", "A distributor publishes an updated allocation schedule."),
+          ("channel", "Cairn Thread Partners", -1, "core", "An external channel newsletter describes changes to placement.")),
+         counterevidence="access_plus_north:visits=stable"),
+    deep("deep_05", "C", "Harbor Moth", "observed_constraint",
+         "scope:cell=core_north timeline:onset=2025-06-19 events:release=after shelf_core_north:no_sales_when_unavailable=present",
+         (("units", 4, "core", "north", 0), ("available", 4, "core", "north", 0)),
+         (("release", "Harbor Moth", 8, "core", "A trade paper publishes a spokesperson controversy."),
+          ("notice", "Harbor Moth", 2, "core_north", "A distributor updates its regional allocation calendar.")),
+         counterevidence="events:release=after"),
+    deep("deep_06", "C", "Alder Tern", "association",
+         "scope:cell=plus_south events:warranty:scope=mismatch access_plus_south:visits=down access_plus_south:conversion=stable",
+         (("units", 0, "plus", "south", 22), ("visits", 0, "plus", "south", 44),
+          ("complaints", 0, "core", "north", 4)),
+         (("warranty", "Alder Tern", 0, "core", "The brand issues a warranty notice for its core SKU."),
+          ("listing", "Alder Tern", 0, "plus_south", "A marketplace publishes a regional update to catalog access.")),
+         counterevidence="events:warranty:scope=mismatch"),
+    deep("deep_07", "D", "Reed Lantern", "insufficient",
+         "scope:cell=core_north access_core_north:visits=missing shelf_core_north:availability=missing",
+         (("units", 0, "core", "north", 23), ("visits", 0, "core", "north", None),
+          ("available", 0, "core", "north", None)),
+         (("notice", "Reed Lantern", 0, "core_north", "A marketplace publishes a regional update to catalog access."),
+          ("brief", "Reed Lantern", -1, "core_north", "A carrier confirms its new dispatch schedule.")),
+         counterevidence="access_core_north:visits=missing shelf_core_north:availability=missing"),
+    deep("deep_08", "D", "Bracken Pin", "ambiguous",
+         "scope:cell=plus_north access_plus_north:visits=down offer_plus_north:price=up",
+         (("units", 0, "plus", "north", 24), ("visits", 0, "plus", "north", 70),
+          ("price", 0, "plus", "north", 137)),
+         (("circular", "Bracken Pin", 0, "plus_north", "A pricing circular lists revised checkout prices."),
+          ("listing", "Bracken Pin", 0, "plus_north", "A marketplace publishes a regional update to catalog access."))),
+)
+
+DEEP_DEV = (
+    deep("deep_dev_01", "A", "Clover Pier", "association",
+         "scope:cell=core_south offer_core_south:price=up access_core_south:visits=stable",
+         (("units", 0, "core", "south", 24), ("price", 0, "core", "south", 130)),
+         (("circular", "Clover Pier", 0, "core_south", "A price sheet lists revised checkout prices."),
+          ("update", "Clover Pier Partners", 0, "core", "A bulletin announces delayed retailer allocation.")),
+         counterevidence="access_core_south:visits=stable"),
+    deep("deep_dev_02", "C", "Moss Rill", "association",
+         "scope:cell=plus_north access_plus_north:visits=down events:notice:scope=mismatch",
+         (("units", 0, "plus", "north", 27), ("visits", 0, "plus", "north", 54)),
+         (("notice", "Moss Rill", 0, "core", "A trade report describes a core SKU warranty notice."),
+          ("listing", "Moss Rill", -1, "plus_north", "A marketplace publishes a regional update to catalog access.")),
+         counterevidence="events:notice:scope=mismatch"),
+)
+
+# Rank one case per challenge first, starting with conditional localisation.
+DEEP_ONLINE_ORDER = tuple(f"deep_{n:02d}" for n in (3, 5, 8, 2, 4, 6, 7, 1))

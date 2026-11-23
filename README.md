@@ -120,6 +120,41 @@ python -m data_analysis_agent eval --business --online --reliability-retest --ca
 
 [工具与 SQL](src/data_analysis_agent/business_tools.py) · [策略与结论协议](src/data_analysis_agent/business_investigation.py) · [数据生成与题库](src/data_analysis_agent/business_cases.py) · [评分与在线配对](src/data_analysis_agent/business_benchmark.py)
 
+## Mode B 深度调查
+
+`mode-b-deep-v1` 独立保留 2 道开发题与 8 道冻结题。题面只给品牌、两周比较窗和销量下降。冻结题各两道覆盖竞争解释、条件下钻、误导事件、证据不足。数据均为合成，沿用两 SKU、两地区的零售面板。每题有五条模拟档案记录，例如错主体、错产品、错时间的报道及日常公告。外部档案是调查线索，实际指标和对应的范围、时间证据需要工具验证。 [原始题库与注入规则](src/data_analysis_agent/business_cases.py)
+
+四组使用相同 SQL、档案、动作目录和预算。新增的分群动作是原库存、渠道、价格工具在指定 SKU 与地区上的过滤查询。固定流程预定范围、事件、全店库存、全店渠道的顺序。强规则先定位销量缺口，再按日期、主体、范围与文字线索选择分群核查。样本中的档案措辞较规整，强规则可以利用这些通用关键词。
+
+评分保留旧口径并为深度套件另设三列。证据找全只看工具实际返回的必答事实，结论正确看在当前证据下是否选对结论或恰当表示证据不足，端到端还要求引用齐全且有据。证据缺失和有证据但漏引分开记录。前三步压力测试里，八道冻结题只有一道在三次动作内可查齐证据。实际标准预算仍为五次。 [原始数据审计、最短可解路径、代码哈希、预选顺序](evaluation/business_deep_frozen_manifest.json)
+
+| 预算 | 策略 | 证据找全 | 结论正确 | 端到端正确 | 平均动作 |
+| --- | --- | ---: | ---: | ---: | ---: |
+| 3 | Fixed Workflow | 0/8 | 8/8 | 0/8 | 3.00 |
+| 3 | Rule-Adaptive | 1/8 | 7/8 | 1/8 | 3.00 |
+| 5 | Fixed Workflow | 1/8 | 8/8 | 1/8 | 5.00 |
+| 5 | Rule-Adaptive | 8/8 | 8/8 | 8/8 | 4.63 |
+
+离线按同一动作目录枚举固定动作集合，三次和五次预算的乐观上界分别为 1/8 和 2/8。这个上界允许事后选择整个测试集上最有利的固定动作，端到端结果只会更低。Fixed 的结论校准分主要来自证据不足时保留判断，该分不代表查全证据。 [三动作离线 Trace](evaluation/business_deep_offline_3.json) · [五动作离线 Trace](evaluation/business_deep_offline_5.json)
+
+```bash
+python -m data_analysis_agent eval --business --deep --budget 3 --output /tmp/deep_offline_3.json
+python -m data_analysis_agent eval --business --deep --budget 5 --output /tmp/deep_offline_5.json
+python -m data_analysis_agent eval --business --deep --audit --output /tmp/deep_audit.json
+```
+
+两道开发题均完成四组对照。Adaptive 找全证据并答对 1/2，Frozen 为 0/2，强规则为 2/2。Adaptive 全程使用十次动作，强规则九次。Adaptive 有从目标库存转查渠道并再查价格的动态路径，但严格反证重规划为 0。Frozen 有一次 JSON 格式错误和两次截断，均恢复到合法响应。两组均使用 VX Flash。含探针共新增 18 次请求和 61,993 个已计量 Token。 [真实开发集 Trace](evaluation/business_deep_online_dev.json)
+
+续用原账本，累计 75 次请求、238,648 Token。余下五次请求低于预先规定的七次配对启动额度。冻结集没有使用模型，所有跳过原因单独保存。旧套件仍可通过原 CLI 入口复现，两组确定性指标保持 30/30。 [冻结集在线调度记录](evaluation/business_deep_online_test.json)
+
+如需复现在线调度，保留原工作区的预算账本，并使用新的输出文件。以下命令复核本轮剩余额度及预选顺序。
+
+```bash
+python -m data_analysis_agent eval --business --deep --online \
+  --prior-results evaluation/business_deep_online_dev.json \
+  --output /tmp/deep_online_test.json
+```
+
 ## Mode B 晚到率实验（历史）
 
 `investigate --online` 先执行一次共同的整体对比，后续由模型决定动作。它可以分组、在同一两期人群上条件下钻、核查一个人群总量，或停止。模型给出动作或停止决定、调查疑问和 Evidence ID。方向预测与预案均可选。SQL 编译器固定指标和窗口，工具从结果中确定最显著的分组。空白、JSON 解析失败或重复动作至多使用一个剩余决策名额纠正。离线路径继续使用 Rule-Adaptive，`auto` 的显式单维分解走固定 Workflow。

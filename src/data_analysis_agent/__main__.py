@@ -298,6 +298,8 @@ def main(argv: list[str] | None = None) -> int:
             suite = command.add_mutually_exclusive_group()
             suite.add_argument("--mode-b", action="store_true", help="Compare delivery benchmark policies")
             suite.add_argument("--business", action="store_true", help="Run the business investigation suite")
+            command.add_argument("--deep", action="store_true", help="Use the Mode B deep retail suite")
+            command.add_argument("--audit", action="store_true", help="Audit and freeze the deep suite offline")
             command.add_argument("--prior-results", type=Path, action="append", default=[],
                                  help="Subtract prior business online usage from this experiment's budget")
             command.add_argument("--reliability-retest", action="store_true",
@@ -329,6 +331,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if not database.is_file():
             raise ValueError(f"Missing database {database}. Run python -m scripts.prepare_data {domain}")
+        if args.command == "eval" and (args.deep or args.audit) and not args.business:
+            raise ValueError("--deep and --audit require --business")
         business_online = args.command == "eval" and args.business and args.online
         if business_online:
             from .business_benchmark import BUSINESS_MAX_REQUESTS, BUSINESS_MAX_TOKENS
@@ -340,8 +344,18 @@ def main(argv: list[str] | None = None) -> int:
             from .benchmark import evaluate, evaluate_mode_b
 
             if args.business:
-                from .business_benchmark import evaluate_business, online_budget
-                from .business_cases import DEV, ONLINE_PAIRS
+                from .business_benchmark import DEEP_STUDY, audit_deep, evaluate_business, online_budget
+                from .business_cases import DEEP_DEV, DEEP_ONLINE_ORDER, DEV, ONLINE_PAIRS
+
+                if args.audit:
+                    if not args.deep or args.online or not args.output or args.output.exists():
+                        raise ValueError("Deep audit requires --deep, offline execution, and a new --output file")
+                    _write_evaluation(args.output, audit_deep())
+                    print(json.dumps({"study_id": DEEP_STUDY, "output": str(args.output)}))
+                    return 0
+                dev_cases = DEEP_DEV if args.deep else DEV
+                online_order = DEEP_ONLINE_ORDER if args.deep else ONLINE_PAIRS
+                study_id = DEEP_STUDY if args.deep else None
 
                 if args.bike or (args.prior_results and not model):
                     raise ValueError("Business evaluation does not use --bike and prior usage requires --online")
@@ -349,7 +363,7 @@ def main(argv: list[str] | None = None) -> int:
                     raise ValueError("Reliability retests require --online --split test and explicit --case")
                 selected = tuple(args.case.split(",")) if args.case else ()
                 if not model:
-                    payload = evaluate_business(database, split=args.split, case_ids=selected, budget=args.budget)
+                    payload = evaluate_business(database, split=args.split, case_ids=selected, budget=args.budget, deep=args.deep)
                 else:
                     if not args.output:
                         raise ValueError("Online business evaluation requires --output to preserve the result")
@@ -358,24 +372,24 @@ def main(argv: list[str] | None = None) -> int:
                             raise ValueError("Use a new --output path to preserve the existing online result")
                         if args.split == "test":
                             completed_dev = {(row["case"], row["arm"]) for record in previous
-                                             if record.get("split") == "dev"
+                                             if record.get("split") == "dev" and record.get("study_id") == study_id
                                              and (record.get("low_probe") or {}).get("outcome") == "accepted"
                                              and record.get("model") == model.name
                                              for row in record["runs"]
                                              if row["execution"] == "online_model" and row["completed"]}
-                            expected_dev = {(case.id, arm) for case in DEV
+                            expected_dev = {(case.id, arm) for case in dev_cases
                                             for arm in ("llm_frozen", "llm_adaptive")}
                             if not expected_dev <= completed_dev:
-                                raise ValueError("Finish both Low model arms on all four development cases first")
+                                raise ValueError("Finish both Low model arms on all development cases for this suite first")
                             if args.reliability_retest:
                                 if set(selected) - seen:
                                     raise ValueError("Reliability retests require previously attempted cases")
                             else:
-                                selected = selected or tuple(case for case in ONLINE_PAIRS if case not in seen)
+                                selected = selected or tuple(case for case in online_order if case not in seen)
                                 if not selected or set(selected) & seen:
                                     raise ValueError("Previously attempted cases require --reliability-retest")
                         payload = evaluate_business(database, split=args.split, case_ids=selected,
-                                                    budget=args.budget, model=model, begin_test=begin_test)
+                                                    budget=args.budget, model=model, begin_test=begin_test, deep=args.deep)
                         payload.update(budget_journal_id=journal["id"], cumulative_online_usage=journal["usage"],
                                        reliability_retest=args.reliability_retest)
                         _write_evaluation(args.output, payload)

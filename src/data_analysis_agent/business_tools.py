@@ -22,6 +22,15 @@ class BusinessGoal:
 
 
 @dataclass(frozen=True)
+class DeepRetailGoal(BusinessGoal):
+    """Use the cohort-resolution retail tools for this benchmark suite."""
+
+
+COHORTS = tuple(f"{sku}_{region}" for sku in ("core", "plus") for region in ("north", "south"))
+COHORT_METRICS = {"shelf": "stock", "access": "access", "offer": "pricing"}
+
+
+@dataclass(frozen=True)
 class BusinessEvidence(Evidence):
     columns: tuple[str, ...] = ()
     rows: tuple[tuple, ...] = ()
@@ -54,7 +63,12 @@ RETAIL_TOOLS = {
 
 def catalog(goal: BusinessGoal) -> dict[str, str]:
     tools = OLIST_TOOLS if goal.domain == "olist" else RETAIL_TOOLS
-    return {key: value for key, value in tools.items() if key != "breakdown" or goal.dimension}
+    tools = {key: value for key, value in tools.items() if key != "breakdown" or goal.dimension}
+    if isinstance(goal, DeepRetailGoal):
+        tools["scope"] = "Unit and complaint changes by SKU, region, and SKU-region cell."
+        tools.update({f"{prefix}_{cohort}": f"{tools[metric]} Filter to SKU-region {cohort}."
+                      for prefix, metric in COHORT_METRICS.items() for cohort in COHORTS})
+    return tools
 
 
 def change(before, after, *, absolute=None) -> str:
@@ -139,6 +153,11 @@ def _olist_sql(goal, action):
 def _retail_sql(goal, action):
     entity = "market peer" if action == "peer" else goal.entity
     predicate = f"entity = {_literal(entity)}"
+    focused = isinstance(goal, DeepRetailGoal) and action.count("_") == 2
+    if focused:
+        prefix, sku, region = action.split("_")
+        predicate += f" AND sku = {_literal(sku)} AND region = {_literal(region)}"
+        action = COHORT_METRICS[prefix]
     if action in {"stock_core", "stock_plus"}:
         predicate += f" AND sku = {_literal(action.split('_')[1])}"
         action = "stock"
@@ -148,10 +167,17 @@ def _retail_sql(goal, action):
     elif action == "scope":
         statement = """SELECT period, 'sku' AS axis, sku AS key, SUM(units) AS units, SUM(complaints) AS complaints
             FROM panel GROUP BY 1, 2, 3 UNION ALL
-            SELECT period, 'region', region, SUM(units), SUM(complaints) FROM panel GROUP BY 1, 2, 3 ORDER BY 1, 2, 3"""
+            SELECT period, 'region', region, SUM(units), SUM(complaints) FROM panel GROUP BY 1, 2, 3"""
+        if isinstance(goal, DeepRetailGoal):
+            statement += """ UNION ALL SELECT period, 'cell', sku || '_' || region, SUM(units), SUM(complaints)
+                FROM panel GROUP BY 1, 2, 3"""
+        statement += " ORDER BY 1, 2, 3"
     elif action == "stock":
-        statement = """SELECT period, AVG(available) AS availability, COUNT(available) AS recorded,
-            COUNT(*) AS panel_rows, SUM(units) AS units, SUM(CASE WHEN switched THEN units END) AS switched_units
+        availability = "CASE WHEN COUNT(available) = COUNT(*) THEN AVG(available) END" if focused else "AVG(available)"
+        outage = (", COUNT(*) FILTER (WHERE available = 0) AS unavailable_days, "
+                  "SUM(units) FILTER (WHERE available = 0) AS unavailable_units" if focused else "")
+        statement = f"""SELECT period, {availability} AS availability, COUNT(available) AS recorded,
+            COUNT(*) AS panel_rows, SUM(units) AS units, SUM(CASE WHEN switched THEN units END) AS switched_units{outage}
             FROM (SELECT *, MIN(available) FILTER (WHERE period = 0) OVER (PARTITION BY sku,region) = 1
               AND MAX(available) FILTER (WHERE period = 1) OVER (PARTITION BY sku,region) = 0 AS switched
               FROM panel) GROUP BY 1 ORDER BY 1"""
@@ -165,6 +191,11 @@ def _retail_sql(goal, action):
             "complaints": "SUM(complaints) AS complaints, SUM(complaints)::DOUBLE / NULLIF(SUM(units), 0) AS complaint_rate",
             "service": "SUM(late) AS late_orders, SUM(late)::DOUBLE / NULLIF(SUM(units), 0) AS late_rate",
         }
+        if focused and action == "access":
+            measures["access"] = ("CASE WHEN COUNT(visits) = COUNT(*) THEN SUM(visits) END AS visits, "
+                                  "CASE WHEN COUNT(visits) = COUNT(*) "
+                                  "THEN SUM(units)::DOUBLE / NULLIF(SUM(visits), 0) END AS conversion, "
+                                  "COUNT(visits) AS recorded")
         statement = f"SELECT period, {measures[action]} FROM panel GROUP BY 1 ORDER BY 1"
     return f"WITH panel AS ({source}) {statement}"
 
@@ -182,7 +213,8 @@ def _facts(action, columns, rows):
         return (f"top={key}:{change(0, delta)}",)
     if action == "scope":
         findings = []
-        for axis, label, index in (("sku", "sku", 3), ("region", "region", 3), ("sku", "complaints_sku", 4)):
+        for axis, label, index in (("sku", "sku", 3), ("region", "region", 3), ("sku", "complaints_sku", 4),
+                                   ("cell", "cell", 3)):
             values = {key: sum(row[index] * (1 if row[0] else -1) for row in rows if row[1:3] == (axis, key))
                       for _, dim, key, *_ in rows if dim == axis}
             if values:
@@ -214,10 +246,12 @@ def _facts(action, columns, rows):
     rates = {"negative_rate", "late_rate", "complaint_rate", "availability", "promo_rate", "coverage", "conversion"}
     facts = [f"{name}={change(value, later[name], absolute=0.025 if name in rates else None)}"
              for name, value in earlier.items()]
-    if action in {"stock", "stock_core", "stock_plus"}:
+    if action in {"stock", "stock_core", "stock_plus"} or action.startswith("shelf_"):
         loss = earlier["units"] - later["units"]
         if loss > 0 and (earlier["switched_units"] or 0) >= loss * 0.8 and later["switched_units"] == 0:
             facts.append("stockout_sales_loss=present")
+        if loss > 0 and later.get("unavailable_days", 0) > 0 and later.get("unavailable_units") == 0:
+            facts.append("no_sales_when_unavailable=present")
     return tuple(facts)
 
 

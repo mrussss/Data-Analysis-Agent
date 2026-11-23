@@ -6,7 +6,7 @@ import re
 from dataclasses import asdict, dataclass, field
 from datetime import date
 
-from .business_tools import BusinessEvidence, BusinessGoal, catalog, observe
+from .business_tools import BusinessEvidence, BusinessGoal, DeepRetailGoal, catalog, observe
 from .investigation import Hypothesis, InvestigationState
 from .model_budget import PlannerResponseError, parse_model_json
 
@@ -58,11 +58,16 @@ def event_findings(goal, evidence):
                   if fact.startswith("timeline:onset=") and fact != "timeline:onset=none"), None)
     reference = date.fromisoformat(onset) if onset else goal.current[0]
     values = []
-    for identifier, subject, when, *_ in event.rows:
+    cohort = next((fact.split("=", 1)[1] for facts in findings.values() for fact in facts
+                   if fact.startswith("scope:cell=")), None)
+    for identifier, subject, when, scope, *_ in event.rows:
         days = (date.fromisoformat(when) - reference).days
         relation = ("wrong_subject" if subject.casefold() != goal.entity.casefold() else
                     "after" if days > 0 else "early" if days < -3 else "matched")
         values.append(f"events:{identifier}={relation}")
+        if isinstance(goal, DeepRetailGoal) and cohort and relation != "wrong_subject":
+            match = scope in {"all", "market", cohort, *cohort.split("_")}
+            values.append(f"events:{identifier}:scope={'match' if match else 'mismatch'}")
     findings[event.id] = tuple(values) or ("events:none=found",)
     return findings
 
@@ -99,10 +104,77 @@ def _rule_next(goal, available, preferred, evidence):
     return next((item for item in pending if item not in checked), None)
 
 
+DEEP_FIXED_ORDER = ("scope", "events", "stock", "access")
+
+
+def _deep_next(goal, evidence, checked, remaining):
+    """Apply merchandising triage to scope, dated notices, then measured signals."""
+    if "scope" not in checked:
+        return "scope"
+    # Spare a slot for direct measurement when no follow-up is possible.
+    if "events" not in checked and remaining > 1:
+        return "events"
+    findings = event_findings(goal, evidence)
+    facts = {fact for items in findings.values() for fact in items}
+    affected = next((fact.split("=", 1)[1] for fact in sorted(facts) if fact.startswith("scope:cell=")), None)
+    if not affected:
+        return next((action for action in DEEP_FIXED_ORDER if action not in checked), None)
+    records = [row for item in evidence if item.action == ("events",) for row in item.rows
+               if row[1].casefold() == goal.entity.casefold()
+               and row[3] in {"all", "market", affected, *affected.split("_")}]
+    if "timeline" not in checked and any(date.fromisoformat(row[2]) > goal.current[0]
+                                         and re.search(r"controvers|warranty|recall|incident", row[4], re.I)
+                                         for row in records):
+        return "timeline"
+    notices = " ".join(row[4] for row in records)
+    shelf, access, offer = (f"{metric}_{affected}" for metric in ("shelf", "access", "offer"))
+    if f"{shelf}:stockout_sales_loss=present" in facts:
+        return None
+    if shelf in checked:
+        if access not in checked:
+            return access
+        return None
+    if offer in checked:
+        if access not in checked:
+            return access
+        return None
+    if access in checked:
+        if f"{access}:visits=missing" in facts:
+            return shelf
+        if (f"{access}:conversion=down" in facts or re.search(r"price|voucher|discount", notices, re.I)):
+            return offer
+        return None
+    if re.search(r"price|voucher|discount", notices, re.I):
+        return offer
+    if re.search(r"allocation|dispatch|availability|shipment|backorder", notices, re.I):
+        return shelf
+    return access
+
+
+def _deep_verdict(facts):
+    if any(fact.endswith((":stockout_sales_loss=present", ":no_sales_when_unavailable=present"))
+           for fact in facts):
+        return "observed_constraint"
+    for fact in sorted(facts):
+        if fact.startswith("offer_") and fact.endswith(":price=up"):
+            cohort = fact.removeprefix("offer_").split(":")[0]
+            return "ambiguous" if f"access_{cohort}:visits=down" in facts else "association"
+        if fact.startswith("access_") and fact.endswith(":visits=down"):
+            cohort = fact.removeprefix("access_").split(":")[0]
+            if f"offer_{cohort}:price=up" in facts:
+                return "ambiguous"
+            if f"access_{cohort}:conversion=stable" in facts:
+                return "association"
+    return "insufficient"
+
+
 def _rule_report(state):
     facts = event_findings(state.goal, state.evidence)
     flat = {fact for choices in facts.values() for fact in choices}
     state.claims = [{"evidence": key, "fact": fact} for key, choices in facts.items() for fact in choices]
+    if isinstance(state.goal, DeepRetailGoal):
+        state.verdict = _deep_verdict(flat)
+        return
     if state.goal.domain == "olist":
         state.verdict = "statistical" if state.goal.dimension else "association"
         return
@@ -126,7 +198,8 @@ def _model_view(state):
     observations = []
     for item in state.evidence:
         rows = item.rows
-        if len(rows) > 12 and item.action != ("timeline",):
+        row_limit = 20 if isinstance(state.goal, DeepRetailGoal) else 12
+        if len(rows) > row_limit and item.action != ("timeline",):
             rows = ()  # Contributions are retained as verified facts and full rows stay in the trace.
         observations.append({"id": item.id, "action": item.action[0], "facts": facts[item.id],
                              "segments": [asdict(row) for row in item.segments[:1]],
@@ -322,12 +395,18 @@ def run_business(database, goal, *, policy, budget, planner, events):
             state.stop_reason = "planner_error"
             return state
     else:
-        preferred = _rules(goal, tools)
+        deep = isinstance(goal, DeepRetailGoal)
+        preferred = DEEP_FIXED_ORDER if deep else _rules(goal, tools)
         while state.remaining_budget:
             checked = {item.action[0] for item in state.evidence}
             planned = next((a for a in preferred if a not in checked), None)
-            action = (_rule_next(goal, tools, preferred, state.evidence)
-                      if policy == "rule_adaptive" else planned)
+            action = planned
+            if policy == "rule_adaptive":
+                if deep:
+                    planned = _deep_next(goal, state.evidence[:-1], checked, state.remaining_budget)
+                    action = _deep_next(goal, state.evidence, checked, state.remaining_budget)
+                else:
+                    action = _rule_next(goal, tools, preferred, state.evidence)
             if not action:
                 break
             _take(state, database, action, events, decision_source=policy, planned=planned)
